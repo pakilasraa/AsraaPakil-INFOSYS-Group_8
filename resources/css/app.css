@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Café-themed background */
+.bg-cafe {
+	background: radial-gradient(1200px 600px at 10% 10%, rgba(245, 222, 179, 0.35), transparent 60%),
+		radial-gradient(900px 500px at 90% 20%, rgba(245, 198, 149, 0.25), transparent 60%),
+		radial-gradient(1000px 700px at 50% 100%, rgba(210, 180, 140, 0.30), transparent 60%),
+		#faf7f2;
+}
+
+/* Typography */
+body { font-family: 'Poppins', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'; }
+.text-cafe-900 { color: #5b4334; }
+.text-cafe-700 { color: #7a5c47; }
+
+/* Inputs */
+.input-cafe { border-color: #E7C9A9; }
+.input-cafe:focus { border-color: #D8A97B; box-shadow: 0 0 0 3px rgba(216, 169, 123, 0.25); }
+
+/* Button gradient + border to match reference */
+.btn-cafe {
+	background-image: linear-gradient(180deg, #E9CDAF 0%, #C59B78 100%);
+	border: 1px solid #B78D6F;
+	color: #3d2b1f;
+}
+.btn-cafe:hover { filter: brightness(1.03); }
+
+/* Card title clamp for consistent heights */
+.product-name {
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+/* Prevent Alpine x-cloak flash */
+[x-cloak] { display: none !important; }
+
+/* Utility: remove dropdown arrow */
+.select-no-arrow {
+	appearance: none;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	background-image: none;
+}
