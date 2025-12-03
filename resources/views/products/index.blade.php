@@ -25,23 +25,59 @@
                         <div class="w-full h-full flex items-center justify-center text-cafe-700">No Image</div>
                     @endif
                 </div>
-                <div class="p-4 flex flex-col gap-2 grow">
-                    <div class="flex items-start justify-between gap-2 min-h-[3.25rem]">
-                        <h3 class="font-semibold product-name">{{ $product->name }}</h3>
-                        <span class="text-cafe-900 font-medium whitespace-nowrap">₱{{ number_format($product->price, 2) }}</span>
+                    <div class="p-4 flex flex-col gap-2 grow">
+                        <div class="flex items-start justify-between gap-2 min-h-[3.25rem]">
+                            <h3 class="font-semibold product-name">{{ $product->name }}</h3>
+
+                            <div class="flex flex-col items-end">
+                                <span class="text-cafe-900 font-medium whitespace-nowrap">
+                                    ₱{{ number_format($product->price, 2) }}
+                                </span>
+
+                                @if($product->price_small || $product->price_medium || $product->price_large)
+                                    <div class="mt-1 text-[11px] text-cafe-700 text-right space-y-0.5">
+                                        @if($product->price_small)
+                                            <div>S: ₱{{ number_format($product->price_small, 2) }}</div>
+                                        @endif
+                                        @if($product->price_medium)
+                                            <div>M: ₱{{ number_format($product->price_medium, 2) }}</div>
+                                        @endif
+                                        @if($product->price_large)
+                                            <div>L: ₱{{ number_format($product->price_large, 2) }}</div>
+                                        @endif
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        {{-- ACTION BUTTONS --}}
+                        <div class="mt-3 flex justify-end gap-2">
+                            {{-- Edit --}}
+                            <a
+                                href="{{ route('products.edit', $product->id) }}"
+                                class="px-3 py-1.5 rounded-md bg-amber-200 text-cafe-900 text-xs font-medium"
+                            >
+                                Edit
+                            </a>
+
+                            {{-- Delete --}}
+                            <form
+                                action="{{ route('products.destroy', $product->id) }}"
+                                method="POST"
+                                onsubmit="return confirm('Delete this product?');"
+                            >
+                                @csrf
+                                @method('DELETE')
+                                <button
+                                    type="submit"
+                                    class="px-3 py-1.5 rounded-md bg-red-500 text-white text-xs font-medium"
+                                >
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
                     </div>
-                    <div>
-                        <span class="inline-block text-xs px-2 py-1 rounded-full bg-amber-100 text-cafe-900">{{ $product->category?->name }}</span>
-                    </div>
-                    <div class="flex gap-2 pt-2 mt-auto">
-                        <button @click="$dispatch('open-edit', {id: {{ $product->id }}, name: '{{ addslashes($product->name) }}', price: '{{ $product->price }}', category_id: {{ $product->category_id }} })" class="px-3 py-1.5 rounded-md bg-amber-200 text-cafe-900">Edit</button>
-                        <form method="POST" action="{{ route('products.destroy', $product) }}">
-                            @csrf
-                            @method('DELETE')
-                            <button class="px-3 py-1.5 rounded-md bg-red-100 text-red-700" onclick="return confirm('Delete this product?')">Delete</button>
-                        </form>
-                    </div>
-                </div>
+
             </div>
         @endforeach
     </div>
@@ -63,9 +99,50 @@
                         @error('name')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                     </div>
                     <div>
-                        <label class="text-sm text-cafe-900">Price</label>
-                        <input type="number" name="price" step="0.01" min="0" required class="w-full rounded-lg border input-cafe px-3 py-2" />
+                        <label class="text-sm text-cafe-900">Base Price (optional)</label>
+                        <input
+                            type="number"
+                            name="price"
+                            step="0.01"
+                            min="0"
+                            class="w-full rounded-lg border input-cafe px-3 py-2"
+                            placeholder="If empty, will use one of the size prices"
+                        />
                     </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
+                        <div>
+                            <label class="text-sm text-cafe-900">Small Price</label>
+                            <input
+                                type="number"
+                                name="price_small"
+                                step="0.01"
+                                min="0"
+                                class="w-full rounded-lg border input-cafe px-3 py-2"
+                            />
+                        </div>
+                        <div>
+                            <label class="text-sm text-cafe-900">Medium Price</label>
+                            <input
+                                type="number"
+                                name="price_medium"
+                                step="0.01"
+                                min="0"
+                                class="w-full rounded-lg border input-cafe px-3 py-2"
+                            />
+                        </div>
+                        <div>
+                            <label class="text-sm text-cafe-900">Large Price</label>
+                            <input
+                                type="number"
+                                name="price_large"
+                                step="0.01"
+                                min="0"
+                                class="w-full rounded-lg border input-cafe px-3 py-2"
+                            />
+                        </div>
+                    </div>
+
                     <div>
                         <label class="text-sm text-cafe-900">Category</label>
                         <select name="category_id" required class="w-full rounded-lg border input-cafe px-3 py-2">
@@ -89,43 +166,30 @@
     </div>
 
     <!-- Edit Modal -->
-    <div x-data="{open:false, id:null, name:'', price:'', category_id:''}" x-cloak
-         x-on:open-edit.window="open=true; id=$event.detail.id; name=$event.detail.name; price=$event.detail.price; category_id=$event.detail.category_id">
-        <div x-cloak x-show="open" class="fixed inset-0 bg-black/40 z-40" @click="open=false"></div>
-        <div x-cloak x-show="open" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div class="bg-white rounded-xl shadow w-full max-w-md">
-                <div class="p-4 border-b flex items-center"><h2 class="font-semibold">Edit Product</h2><button class="ml-auto" @click="open=false">✖</button></div>
-                <form method="POST" :action="`/products/${id}`" enctype="multipart/form-data" class="p-4 space-y-3">
-                    @csrf
-                    @method('PUT')
-                    <div>
-                        <label class="text-sm text-cafe-900">Name</label>
-                        <input name="name" x-model="name" required class="w-full rounded-lg border input-cafe px-3 py-2" />
-                    </div>
-                    <div>
-                        <label class="text-sm text-cafe-900">Price</label>
-                        <input type="number" name="price" x-model="price" step="0.01" min="0" required class="w-full rounded-lg border input-cafe px-3 py-2" />
-                    </div>
-                    <div>
-                        <label class="text-sm text-cafe-900">Category</label>
-                        <select name="category_id" x-model="category_id" required class="w-full rounded-lg border input-cafe px-3 py-2">
-                            @foreach($categories as $cat)
-                                <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-sm text-cafe-900">Image (optional)</label>
-                        <input type="file" name="image" accept="image/*" class="w-full rounded-lg border input-cafe px-3 py-2" />
-                    </div>
-                    <div class="flex justify-end gap-2 pt-2">
-                        <button type="button" @click="open=false" class="px-3 py-2 rounded-md bg-gray-100">Cancel</button>
-                        <button class="px-4 py-2 rounded-md btn-cafe">Update</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+    <div
+    x-data="{
+        open:false,
+        id:null,
+        name:'',
+        price:'',
+        price_small:'',
+        price_medium:'',
+        price_large:'',
+        category_id:''
+    }"
+    x-cloak
+    x-on:open-edit.window="
+        open = true;
+        id = $event.detail.id;
+        name = $event.detail.name;
+        price = $event.detail.price ?? '';
+        price_small = $event.detail.price_small ?? '';
+        price_medium = $event.detail.price_medium ?? '';
+        price_large = $event.detail.price_large ?? '';
+        category_id = $event.detail.category_id;
+    "
+>
+
 </x-app-layout>
 
 

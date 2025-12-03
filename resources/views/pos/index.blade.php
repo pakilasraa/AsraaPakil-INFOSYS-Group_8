@@ -44,7 +44,7 @@
                     <p class="text-cafe-700 text-sm">Add products from the Products page to begin.</p>
                 </div>
             @else
-            <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 @foreach($products as $product)
                     <template x-if="tab===-1 || tab==={{ $product->category_id }}">
                         <div class="bg-white rounded-xl shadow overflow-hidden flex flex-col h-full">
@@ -56,9 +56,96 @@
                                 @endif
                             </div>
                             <div class="p-3 flex flex-col gap-2 grow">
-                                <div class="font-semibold product-name min-h-[2.5rem]">{{ $product->name }}</div>
-                                <div class="text-cafe-900">₱{{ number_format($product->price, 2) }}</div>
-                                <button @click="addFromEvent($event)" data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-price="{{ $product->price }}" class="mt-2 w-full px-3 py-2 rounded-md btn-cafe mt-auto">Add</button>
+<div class="font-semibold product-name min-h-[2.5rem]">
+    {{ $product->name }}
+</div>
+
+{{-- Base price --}}
+<div class="mt-1 text-sm font-semibold text-cafe-900">
+    ₱{{ number_format($product->price, 2) }}
+</div>
+
+{{-- Size prices (mas compact) --}}
+@if($product->price_small || $product->price_medium || $product->price_large)
+    <div class="mt-1 text-[11px] text-cafe-700 space-y-1 leading-tight">
+        @if($product->price_small)
+            <div class="flex justify-between">
+                <span>S</span>
+                <span>₱{{ number_format($product->price_small, 2) }}</span>
+            </div>
+        @endif
+        @if($product->price_medium)
+            <div class="flex justify-between">
+                <span>M</span>
+                <span>₱{{ number_format($product->price_medium, 2) }}</span>
+            </div>
+        @endif
+        @if($product->price_large)
+            <div class="flex justify-between">
+                <span>L</span>
+                <span>₱{{ number_format($product->price_large, 2) }}</span>
+            </div>
+        @endif
+    </div>
+
+    {{-- Size buttons with nicer spacing --}}
+    <div class="mt-3 grid grid-cols-3 gap-1">
+    @if($product->price_small)
+        <button
+            @click="addFromEvent($event)"
+            data-id="{{ $product->id }}"
+            data-name="{{ $product->name }}"
+            data-size="small"
+            data-price="{{ $product->price_small }}"
+            class="px-1.5 py-1 rounded-md btn-cafe text-[11px] leading-tight"
+        >
+            Small
+        </button>
+    @endif
+
+   @if($product->price_medium)
+    <button
+        @click="addFromEvent($event)"
+        data-id="{{ $product->id }}"
+        data-name="{{ $product->name }}"
+        data-size="medium"
+        data-price="{{ $product->price_medium }}"
+        class="px-1.5 py-1 rounded-md btn-cafe text-[11px] leading-tight"
+    >
+        Med
+    </button>
+@endif
+
+
+    @if($product->price_large)
+        <button
+            @click="addFromEvent($event)"
+            data-id="{{ $product->id }}"
+            data-name="{{ $product->name }}"
+            data-size="large"
+            data-price="{{ $product->price_large }}"
+            class="px-1.5 py-1 rounded-md btn-cafe text-[11px] leading-tight"
+        >
+            Large
+        </button>
+    @endif
+</div>
+
+@else
+    {{-- Walang size prices → classic Add button --}}
+    <button
+        @click="addFromEvent($event)"
+        data-id="{{ $product->id }}"
+        data-name="{{ $product->name }}"
+        data-size=""
+        data-price="{{ $product->price }}"
+        class="mt-3 w-full px-3 py-2 rounded-md btn-cafe"
+    >
+        Add
+    </button>
+@endif
+
+
                             </div>
                         </div>
                     </template>
@@ -78,7 +165,8 @@
                     <div class="text-sm text-cafe-700">No items yet.</div>
                 </template>
                 <div class="space-y-2 max-h-80 overflow-y-auto">
-                    <template x-for="(item, idx) in items" :key="item.id">
+                    <template x-for="(item, idx) in items" :key="item.id + '-' + (item.size || 'default')">
+
                         <div class="flex items-center justify-between bg-[#faf5ef] rounded-md px-2 py-2">
                             <div>
                                 <div class="text-sm font-medium" x-text="item.name"></div>
@@ -101,7 +189,18 @@
                     </div>
                     <form method="POST" action="{{ route('pos.store') }}" class="mt-3 space-y-2" @submit="submit($event)">
                         @csrf
-                        <input type="hidden" name="items" :value="JSON.stringify(items.map(i=>({product_id:i.id, quantity:i.qty})))">
+                        <input
+                            type="hidden"
+                            name="items"
+                            :value="JSON.stringify(
+                                items.map(i => ({
+                                    product_id: i.id,
+                                    quantity: i.qty,
+                                    size: i.size || null
+                                }))
+                            )"
+                        />
+
                         <div class="grid grid-cols-2 gap-2">
                             <div>
                                 <label class="text-sm text-cafe-900">Discount</label>
@@ -154,7 +253,8 @@
             <div x-show="open" class="fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-2xl shadow p-4 space-y-3">
                 <div class="flex items-center"><div class="font-semibold">Cart</div><button class="ml-auto" @click="open=false">✖</button></div>
                 <div class="space-y-2 max-h-60 overflow-y-auto">
-                    <template x-for="(item, idx) in items" :key="item.id">
+                    <template x-for="(item, idx) in items" :key="item.id + '-' + (item.size || 'default')">
+
                         <div class="flex items-center justify-between bg-[#faf5ef] rounded-md px-2 py-2">
                             <div>
                                 <div class="text-sm font-medium" x-text="item.name"></div>
@@ -171,7 +271,18 @@
                 </div>
                 <form method="POST" action="{{ route('pos.store') }}" class="space-y-2" @submit="submit($event)">
                     @csrf
-                    <input type="hidden" name="items" :value="JSON.stringify(items.map(i=>({product_id:i.id, quantity:i.qty})))">
+                    <input
+                        type="hidden"
+                        name="items"
+                        :value="JSON.stringify(
+                            items.map(i => ({
+                                product_id: i.id,
+                                quantity: i.qty,
+                                size: i.size || null
+                            }))
+                        )"
+                    />
+
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <label class="text-sm text-cafe-900">Discount</label>
@@ -226,18 +337,32 @@
             cash: 0,
             init(){ this.recalc(); },
             add(p){
-                const found = this.items.find(i=>i.id===p.id);
-                if(found){ found.qty++; }
-                else { this.items.push({ id:p.id, name:p.name, price:Number(p.price), qty:1 }); }
+                const size = p.size || null;
+                const found = this.items.find(i => i.id === p.id && i.size === size);
+
+                if (found) {
+                    found.qty++;
+                } else {
+                    this.items.push({
+                        id: p.id,
+                        name: p.name + (size ? ' (' + size.charAt(0).toUpperCase() + size.slice(1) + ')' : ''),
+                        size: size,
+                        price: Number(p.price),
+                        qty: 1,
+                    });
+                }
                 this.recalc();
             },
+
             addFromEvent(e){
                 const btn = e.currentTarget;
                 const id = Number(btn.dataset.id);
                 const name = btn.dataset.name;
+                const size = btn.dataset.size || null;
                 const price = Number(btn.dataset.price);
-                this.add({ id, name, price });
+                this.add({ id, name, size, price });
             },
+
             remove(idx){ this.items.splice(idx,1); this.recalc(); },
             recalc(){ this.total = this.items.reduce((s,i)=> s + (i.qty*i.price), 0); },
             discountAmount(){

@@ -12,11 +12,31 @@ class Product extends Model
     use HasFactory;
 
     protected $fillable = [
-        'category_id',
-        'name',
-        'price',
-        'image',
+    'category_id',
+    'name',
+    'price',
+    'price_small',
+    'price_medium',
+    'price_large',
+    'image',
     ];
+    protected $casts = [
+    'price' => 'decimal:2',
+    'price_small' => 'decimal:2',
+    'price_medium' => 'decimal:2',
+    'price_large' => 'decimal:2',
+    ];
+
+    public function getSizePricesAttribute(): array
+    {
+    return [
+        'small' => $this->price_small,
+        'medium' => $this->price_medium,
+        'large' => $this->price_large,
+    ];
+    }
+
+
 
     public function category(): BelongsTo
     {
