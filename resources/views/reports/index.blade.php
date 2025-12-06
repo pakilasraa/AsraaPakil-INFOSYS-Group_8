@@ -55,7 +55,21 @@
                             <td class="px-4 py-3 whitespace-nowrap">{{ $t->created_at->format('Y-m-d H:i') }}</td>
                             <td class="px-4 py-3 text-sm">
                                 @foreach($t->items as $it)
-                                    <div>{{ $it->quantity }} × {{ $it->product->name }} — ₱{{ number_format($it->subtotal, 2) }}</div>
+                                    <div>
+                                        {{ $it->quantity }} × {{ $it->product->name }}
+
+                                        @if($it->size || $it->temperature)
+                                            (
+                                            {{ $it->size ? ucfirst($it->size) : '' }}
+                                            @if($it->size && $it->temperature)
+                                                ·
+                                            @endif
+                                            {{ $it->temperature ? ucfirst($it->temperature) : '' }}
+                                            )
+                                        @endif
+
+                                        — ₱{{ number_format($it->subtotal, 2) }}
+                                    </div>
                                 @endforeach
                             </td>
                             <td class="px-4 py-3 font-medium">₱{{ number_format($t->total_amount, 2) }}</td>
@@ -76,7 +90,47 @@
         @endif
     </div>
 
+    {{-- 🔥 NEW: Summary per product & temperature --}}
+    @if(isset($summaryByProductTemp) && $summaryByProductTemp->count())
+        <div class="mt-6 bg-white rounded-lg shadow overflow-hidden">
+            <div class="px-4 py-3 border-b bg-[#faf5ef]">
+                <h2 class="text-sm font-semibold text-cafe-900">
+                    Breakdown by Product &amp; Temperature
+                </h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-[#5b4334] text-white">
+                        <tr>
+                            <th class="text-left px-4 py-3">Product</th>
+                            <th class="text-left px-4 py-3">Temperature</th>
+                            <th class="text-left px-4 py-3">Total Qty</th>
+                            <th class="text-left px-4 py-3">Total Sales</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($summaryByProductTemp as $row)
+                            <tr class="odd:bg-[#faf5ef] even:bg-white border-b">
+                                <td class="px-4 py-2">
+                                    {{ $row->product->name ?? 'Unknown product' }}
+                                </td>
+                                <td class="px-4 py-2">
+                                    {{ $row->temperature ? ucfirst($row->temperature) : 'N/A' }}
+                                </td>
+                                <td class="px-4 py-2">
+                                    {{ $row->total_qty }}
+                                </td>
+                                <td class="px-4 py-2">
+                                    ₱{{ number_format($row->total_amount, 2) }}
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
+
+
     <div class="mt-4">{{ $transactions->links() }}</div>
 </x-app-layout>
-
-
