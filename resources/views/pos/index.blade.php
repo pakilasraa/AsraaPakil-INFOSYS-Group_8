@@ -88,6 +88,26 @@
                                         @endif
                                     </div>
 
+                                    {{-- Show Hot/Iced buttons only for DRINKS --}}
+                                @if(in_array($product->category_id, [1, 2, 5])) {{-- palitan IDs kung kailangan --}}
+                                    <div class="flex gap-2 mt-2">
+                                        <button
+                                            class="btn-temp px-3 py-1 rounded-full border border-amber-400 text-xs sm:text-sm hover:bg-amber-100"
+                                            data-product-id="{{ $product->id }}"
+                                            data-temp="hot"
+                                        >
+                                            Hot
+                                        </button>
+                                        <button
+                                            class="btn-temp px-3 py-1 rounded-full border border-amber-400 text-xs sm:text-sm hover:bg-amber-100"
+                                            data-product-id="{{ $product->id }}"
+                                            data-temp="iced"
+                                        >
+                                            Iced
+                                        </button>
+                                    </div>
+                                @endif
+
                                     {{-- Size buttons --}}
                                     <div class="mt-3 grid grid-cols-3 gap-1">
                                         @if($product->price_small)
@@ -148,25 +168,7 @@
                                     </button>
                                 @endif
 
-                                {{-- Show Hot/Iced buttons only for DRINKS --}}
-                                @if(in_array($product->category_id, [1, 2, 5])) {{-- palitan IDs kung kailangan --}}
-                                    <div class="flex gap-2 mt-2">
-                                        <button
-                                            class="btn-temp px-3 py-1 rounded-full border border-amber-400 text-xs sm:text-sm hover:bg-amber-100"
-                                            data-product-id="{{ $product->id }}"
-                                            data-temp="hot"
-                                        >
-                                            Hot
-                                        </button>
-                                        <button
-                                            class="btn-temp px-3 py-1 rounded-full border border-amber-400 text-xs sm:text-sm hover:bg-amber-100"
-                                            data-product-id="{{ $product->id }}"
-                                            data-temp="iced"
-                                        >
-                                            Iced
-                                        </button>
-                                    </div>
-                                @endif
+                                
                             </div>
                         </div>
                     </template>

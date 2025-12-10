@@ -8,10 +8,10 @@ use App\Models\Product;
 
 // Controllers
 use App\Http\Controllers\Api\TransactionApiController;
-use App\Http\Controllers\Api\AuthController as ApiAuthController;
+use App\Http\Controllers\Api\AuthController;          // <— ito lang, walang alias
 use App\Http\Controllers\Api\ProductApiController;
 use App\Http\Controllers\AiController;
-
+use App\Http\Controllers\Api\CustomerApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,8 +25,9 @@ Route::get('/ping', function () {
 });
 
 // AUTH - PUBLIC (register & login)
-Route::post('/auth/register', [ApiAuthController::class, 'register']);
-Route::post('/auth/login', [ApiAuthController::class, 'login']);
+//Route::post('/auth/register', [AuthController::class, 'register']);
+//Route::post('/auth/login', [AuthController::class, 'login']);
+//Route::post('/auth/login', [ApiAuthController::class, 'login']);
 
 
 /*
@@ -48,7 +49,6 @@ Route::get('/ai/test', function () {
 
     return $response->json();
 });
-
 
 /*
 |--------------------------------------------------------------------------
@@ -79,8 +79,6 @@ Route::get('/transactions', [TransactionApiController::class, 'index']);
 
 // Create a new transaction (checkout)
 Route::post('/transactions', [TransactionApiController::class, 'store']);
-
-
 
 /*
 |--------------------------------------------------------------------------
@@ -137,14 +135,12 @@ Route::post('/pos/checkout', function (Request $request) {
     ]);
 });
 
-
 /*
 |--------------------------------------------------------------------------
 | AI Product Recommendation (Public for now)
 |--------------------------------------------------------------------------
 */
 Route::post('/ai/recommend', [AiController::class, 'recommend']);
-
 
 /*
 |--------------------------------------------------------------------------
@@ -154,10 +150,12 @@ Route::post('/ai/recommend', [AiController::class, 'recommend']);
 Route::middleware('auth:sanctum')->group(function () {
 
     // Get authenticated user info
-    Route::get('/auth/me', [ApiAuthController::class, 'me']);
+    Route::get('/auth/me', [AuthController::class, 'me']);
 
     // Logout (revoke current token)
-    Route::post('/auth/logout', [ApiAuthController::class, 'logout']);
+    Route::post('/auth/logout', [AuthController::class, 'logout']);
 
     // (dito ka pwedeng magdagdag ng customer-only routes later)
 });
+
+Route::post('/customers/sync', [CustomerApiController::class, 'syncFromFirebase']);
