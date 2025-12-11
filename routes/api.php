@@ -12,6 +12,8 @@ use App\Http\Controllers\Api\AuthController;          // <— ito lang, walang a
 use App\Http\Controllers\Api\ProductApiController;
 use App\Http\Controllers\AiController;
 use App\Http\Controllers\Api\CustomerApiController;
+use App\Http\Controllers\Api\OrderController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -158,4 +160,12 @@ Route::middleware('auth:sanctum')->group(function () {
     // (dito ka pwedeng magdagdag ng customer-only routes later)
 });
 
-Route::post('/customers/sync', [CustomerApiController::class, 'syncFromFirebase']);
+    Route::middleware('auth:sanctum')->group(function () {
+    // Route to place an order
+    Route::post('/orders', [OrderController::class, 'store']);
+    // Route to fetch the order history for a user
+    Route::get('/orders/history', [OrderController::class, 'index']);
+});
+    Route::middleware('auth:sanctum')->post('/orders', [OrderController::class, 'store']);
+    Route::middleware('auth:sanctum')->get('/orders/history', [OrderController::class, 'index']);
+    Route::post('/customers/sync', [CustomerApiController::class, 'syncFromFirebase']);

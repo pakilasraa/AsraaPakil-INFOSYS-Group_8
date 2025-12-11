@@ -183,7 +183,18 @@
                 @if (session('status'))
                     <div class="mb-2 rounded-md bg-emerald-100 text-emerald-800 px-3 py-2 text-sm">{{ session('status') }}</div>
                 @endif
-                <h2 class="text-sm font-semibold text-cafe-900 mb-2">Cart</h2>
+                    <div class="flex items-center justify-between mb-2">
+                        <h2 class="text-sm font-semibold text-cafe-900">Cart</h2>
+                        <button
+                            type="button"
+                            class="text-xs text-red-600"
+                            x-show="items.length > 0"
+                            @click="clearCart()"
+                        >
+                            Clear
+                        </button>
+                    </div>
+
                 <template x-if="items.length===0">
                     <div class="text-sm text-cafe-700">No items yet.</div>
                 </template>
@@ -320,7 +331,13 @@
                         <input type="hidden" name="discount_type" :value="discountType">
                         <input type="hidden" name="discount_value" :value="discountValue">
                         <input type="hidden" name="cash" :value="cash">
-                        <button class="w-full py-3 rounded-xl btn-cafe text-base font-semibold">Complete Sale</button>
+                            <button
+                                class="w-full py-3 rounded-xl btn-cafe text-base font-semibold"
+                                :disabled="items.length === 0"
+                                :class="items.length === 0 ? 'opacity-50 cursor-not-allowed' : ''"
+                            >
+                                Complete Sale
+                            </button>
                     </form>
                 </div>
             </div>
@@ -335,8 +352,19 @@
             <div x-show="open" class="fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-2xl shadow p-4 space-y-3">
                 <div class="flex items-center">
                     <div class="font-semibold">Cart</div>
+
+                    <button
+                        type="button"
+                        class="text-xs text-red-600 ml-3"
+                        x-show="items.length > 0"
+                        @click="clearCart()"
+                    >
+                        Clear
+                    </button>
+
                     <button class="ml-auto" @click="open=false">✖</button>
                 </div>
+
                 <div class="space-y-2 max-h-60 overflow-y-auto">
                     <template
                         x-for="(item, idx) in items"
@@ -459,7 +487,14 @@
                     <input type="hidden" name="discount_type" :value="discountType">
                     <input type="hidden" name="discount_value" :value="discountValue">
                     <input type="hidden" name="cash" :value="cash">
-                    <button class="w-full py-3 rounded-xl btn-cafe text-base font-semibold">Complete Sale</button>
+                    <button
+                    class="w-full py-3 rounded-xl btn-cafe text-base font-semibold"
+                    :disabled="items.length === 0"
+                    :class="items.length === 0 ? 'opacity-50 cursor-not-allowed' : ''"
+                >
+                    Complete Sale
+                </button>
+
                 </form>
             </div>
         </div>
@@ -549,9 +584,23 @@
                 this.recalc();
             },
 
+            clearCart(){
+                if (!confirm('Clear all items from cart?')) {
+                    return;
+                }
+
+                this.items = [];
+                this.discountType = 'amount';
+                this.discountValue = 0;
+                this.cash = 0;
+
+                this.recalc();
+            },
+
             recalc(){
                 this.total = this.items.reduce((s,i)=> s + (i.qty*i.price), 0);
             },
+
 
             discountAmount(){
                 if(this.discountType==='percent'){
