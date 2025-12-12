@@ -45,6 +45,7 @@ class CustomerApiController extends Controller
             'customer_id' => $customer->id,
             'email'       => $customer->email,
             'name'        => $customer->name,
+            'phone'       => $customer->phone,
         ]);
     }
 }

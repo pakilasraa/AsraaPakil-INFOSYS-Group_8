@@ -46,6 +46,13 @@
             @else
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 @foreach($products as $product)
+                @php
+                    $cat = $categories->firstWhere('id', $product->category_id);
+                    $hasSizes = ($product->price_small || $product->price_medium || $product->price_large) ? 1 : 0;
+                    $isDrink = ($cat ? (int) $cat->is_drink : 0) || $hasSizes;
+                @endphp
+
+
                     <template x-if="tab===-1 || tab==={{ $product->category_id }}">
                         <div class="bg-white rounded-xl shadow overflow-hidden flex flex-col h-full">
                             <div class="bg-[#faf5ef] h-40 md:h-44 xl:h-48">
@@ -89,24 +96,25 @@
                                     </div>
 
                                     {{-- Show Hot/Iced buttons only for DRINKS --}}
-                                @if(in_array($product->category_id, [1, 2, 5])) {{-- palitan IDs kung kailangan --}}
-                                    <div class="flex gap-2 mt-2">
-                                        <button
-                                            class="btn-temp px-3 py-1 rounded-full border border-amber-400 text-xs sm:text-sm hover:bg-amber-100"
-                                            data-product-id="{{ $product->id }}"
-                                            data-temp="hot"
-                                        >
-                                            Hot
-                                        </button>
-                                        <button
-                                            class="btn-temp px-3 py-1 rounded-full border border-amber-400 text-xs sm:text-sm hover:bg-amber-100"
-                                            data-product-id="{{ $product->id }}"
-                                            data-temp="iced"
-                                        >
-                                            Iced
-                                        </button>
-                                    </div>
-                                @endif
+                                    @if($isDrink)
+                                        <div class="flex gap-2 mt-2">
+                                            <button
+                                                class="btn-temp px-3 py-1 rounded-full border border-amber-400 text-xs sm:text-sm hover:bg-amber-100"
+                                                data-product-id="{{ $product->id }}"
+                                                data-temp="hot"
+                                            >
+                                                Hot
+                                            </button>
+
+                                            <button
+                                                class="btn-temp px-3 py-1 rounded-full border border-amber-400 text-xs sm:text-sm hover:bg-amber-100"
+                                                data-product-id="{{ $product->id }}"
+                                                data-temp="iced"
+                                            >
+                                                Iced
+                                            </button>
+                                        </div>
+                                    @endif
 
                                     {{-- Size buttons --}}
                                     <div class="mt-3 grid grid-cols-3 gap-1">
@@ -118,6 +126,7 @@
                                                 data-size="small"
                                                 data-price="{{ $product->price_small }}"
                                                 data-category="{{ $product->category_id }}"
+                                                data-is-drink="{{ $isDrink }}"
                                                 class="px-1.5 py-1 rounded-md btn-cafe text-[11px] leading-tight"
                                             >
                                                 Small
@@ -132,6 +141,7 @@
                                                 data-size="medium"
                                                 data-price="{{ $product->price_medium }}"
                                                 data-category="{{ $product->category_id }}"
+                                                data-is-drink="{{ $isDrink }}"
                                                 class="px-1.5 py-1 rounded-md btn-cafe text-[11px] leading-tight"
                                             >
                                                 Med
@@ -146,6 +156,7 @@
                                                 data-size="large"
                                                 data-price="{{ $product->price_large }}"
                                                 data-category="{{ $product->category_id }}"
+                                                data-is-drink="{{ $isDrink }}"
                                                 class="px-1.5 py-1 rounded-md btn-cafe text-[11px] leading-tight"
                                             >
                                                 Large
@@ -162,13 +173,12 @@
                                         data-size=""
                                         data-price="{{ $product->price }}"
                                         data-category="{{ $product->category_id }}"
+                                        data-is-drink="{{ $isDrink }}"
                                         class="mt-3 w-full px-3 py-2 rounded-md btn-cafe"
                                     >
                                         Add
                                     </button>
                                 @endif
-
-                                
                             </div>
                         </div>
                     </template>
@@ -545,19 +555,16 @@
                 const name = btn.dataset.name;
                 const size = btn.dataset.size || null;
                 const price = Number(btn.dataset.price);
-                const categoryId = Number(btn.dataset.category);
+                const isDrink = (btn.dataset.isDrink === '1');
 
-                // drink categories na dapat may Hot/Iced
-                const drinkCategories = [1, 2, 5];
-
-                // kung drink at walang napiling Hot/Iced → alert
-                if (drinkCategories.includes(categoryId) && !selectedTemps[id]) {
+                // ✅ Drinks only: require Hot/Iced
+                if (isDrink && !selectedTemps[id]) {
                     alert('Please choose Hot or Iced first.');
                     return;
                 }
 
-                // kunin selected temperature (kung meron)
-                const temperature = selectedTemps[id] || null;
+                // ✅ Food: no temperature
+                const temperature = isDrink ? (selectedTemps[id] || null) : null;
 
                 this.add({ id, name, size, price, temperature });
             },
@@ -600,7 +607,6 @@
             recalc(){
                 this.total = this.items.reduce((s,i)=> s + (i.qty*i.price), 0);
             },
-
 
             discountAmount(){
                 if(this.discountType==='percent'){

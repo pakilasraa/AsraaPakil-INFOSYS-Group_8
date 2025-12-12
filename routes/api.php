@@ -26,6 +26,11 @@ Route::get('/ping', function () {
     return response()->json(['message' => 'pong']);
 });
 
+// Cart (mobile app safe stub)
+Route::get('/cart', function () {
+    return response()->json([]);
+});
+
 // AUTH - PUBLIC (register & login)
 //Route::post('/auth/register', [AuthController::class, 'register']);
 //Route::post('/auth/login', [AuthController::class, 'login']);
@@ -160,12 +165,17 @@ Route::middleware('auth:sanctum')->group(function () {
     // (dito ka pwedeng magdagdag ng customer-only routes later)
 });
 
-    Route::middleware('auth:sanctum')->group(function () {
-    // Route to place an order
-    Route::post('/orders', [OrderController::class, 'store']);
-    // Route to fetch the order history for a user
-    Route::get('/orders/history', [OrderController::class, 'index']);
-});
-    Route::middleware('auth:sanctum')->post('/orders', [OrderController::class, 'store']);
-    Route::middleware('auth:sanctum')->get('/orders/history', [OrderController::class, 'index']);
-    Route::post('/customers/sync', [CustomerApiController::class, 'syncFromFirebase']);
+/*
+|--------------------------------------------------------------------------
+| MOBILE CUSTOMER APP ROUTES (Firebase ID token auth)
+|--------------------------------------------------------------------------
+*/
+
+// Sync customer profile from Firebase (public; you can protect later)
+Route::post('/customers/sync', [CustomerApiController::class, 'syncFromFirebase']);
+
+// Orders (expects Authorization header containing Firebase ID token)
+Route::post('/orders', [OrderController::class, 'store']);
+Route::get('/orders/history', [OrderController::class, 'index']);
+
+

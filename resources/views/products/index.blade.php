@@ -29,10 +29,25 @@
                         <div class="flex items-start justify-between gap-2 min-h-[3.25rem]">
                             <h3 class="font-semibold product-name">{{ $product->name }}</h3>
 
+                            @if(!empty($product->description))
+                                <p class="text-xs text-cafe-700 line-clamp-2">
+                                    {{ $product->description }}
+                                </p>
+                            @endif
+
                             <div class="flex flex-col items-end">
                                 <span class="text-cafe-900 font-medium whitespace-nowrap">
-                                    ₱{{ number_format($product->price, 2) }}
+                                    @php
+                                        $displayPrice =
+                                            $product->price ??
+                                            $product->price_small ??
+                                            $product->price_medium ??
+                                            $product->price_large ??
+                                            0;
+                                    @endphp
+                                    ₱{{ number_format($displayPrice, 2) }}
                                 </span>
+
 
                                 @if($product->price_small || $product->price_medium || $product->price_large)
                                     <div class="mt-1 text-[11px] text-cafe-700 text-right space-y-0.5">
@@ -98,6 +113,13 @@
                         <input name="name" required class="w-full rounded-lg border input-cafe px-3 py-2" />
                         @error('name')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                     </div>
+                    <div>
+                        <label class="text-sm text-cafe-900">Description</label>
+                        <textarea name="description" rows="3"
+                            class="w-full rounded-lg border input-cafe px-3 py-2">{{ old('description') }}</textarea>
+                        @error('description')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+                    </div>
+
                     <div>
                         <label class="text-sm text-cafe-900">Base Price (optional)</label>
                         <input

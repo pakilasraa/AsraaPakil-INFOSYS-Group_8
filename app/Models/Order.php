@@ -10,7 +10,7 @@ class Order extends Model
     use HasFactory;
 
     protected $fillable = [
-        'order_id', 'customer_name', 'order_type', 'total_price', 'status'
+        'firebase_uid', 'order_id', 'customer_name', 'order_type', 'total_price', 'status'
     ];
 
     public function products()
