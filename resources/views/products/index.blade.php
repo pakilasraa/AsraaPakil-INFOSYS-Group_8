@@ -27,13 +27,15 @@
                 </div>
                     <div class="p-4 flex flex-col gap-2 grow">
                         <div class="flex items-start justify-between gap-2 min-h-[3.25rem]">
-                            <h3 class="font-semibold product-name">{{ $product->name }}</h3>
+                            <div class="flex flex-col gap-0.5">
+                            <h3 class="font-semibold product-name leading-tight">{{ $product->name }}</h3>
 
                             @if(!empty($product->description))
-                                <p class="text-xs text-cafe-700 line-clamp-2">
+                                <p class="text-xs text-cafe-700 line-clamp-2 leading-snug">
                                     {{ $product->description }}
                                 </p>
                             @endif
+                        </div>
 
                             <div class="flex flex-col items-end">
                                 <span class="text-cafe-900 font-medium whitespace-nowrap">

@@ -1,0 +1,101 @@
+{
+    "name": "DeSeventeen AI Recommendations",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "recommend-products",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "name": "Webhook",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                380,
+                240
+            ],
+            "id": "webhook-trigger"
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "http://127.0.0.1:11434/api/chat",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "model",
+                            "value": "llama3"
+                        },
+                        {
+                            "name": "stream",
+                            "value": false
+                        },
+                        {
+                            "name": "messages",
+                            "value": "={{ [ { \"role\": \"user\", \"content\": \"You are a barista. Recommend 3 items based on this menu and user preference.\\n\\nMENU JSON:\\n\" + $json[\"body\"][\"menu_context\"] + \"\\n\\nUSER PREFERENCE: \" + $json[\"body\"][\"preferences\"] + \"\\nUSER BUDGET: \" + ($json[\"body\"][\"budget\"] ? $json[\"body\"][\"budget\"] : \"Unlimited\") + \"\\n\\nRULES:\\n1. Return strictly a JSON Array.\\n2. Fields: product_id, name, reason.\\n3. Do not add markdown formatting.\" } ] }}"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "name": "Call Ollama",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 3,
+            "position": [
+                600,
+                240
+            ],
+            "id": "call-ollama"
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json[\"message\"][\"content\"] }}",
+                "options": {}
+            },
+            "name": "Respond to Webhook",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                820,
+                240
+            ],
+            "id": "respond-webhook"
+        }
+    ],
+    "connections": {
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Call Ollama",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Call Ollama": {
+            "main": [
+                [
+                    {
+                        "node": "Respond to Webhook",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

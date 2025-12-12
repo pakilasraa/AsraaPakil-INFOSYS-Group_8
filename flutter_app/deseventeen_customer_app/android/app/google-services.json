@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "814820377164",
+    "project_id": "deseventeencustomerapp",
+    "storage_bucket": "deseventeencustomerapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:814820377164:android:da734ac983208b7c55eae9",
+        "android_client_info": {
+          "package_name": "com.mycompany.deseventeencustomerapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBbz5jqsC0gh_J_66oV_4Ivyw-YcLr9lWg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -183,6 +183,16 @@ class OrderController extends Controller
         return $order;
     });
 
+    // Trigger n8n Webhook
+    try {
+        $webhookUrl = env('N8N_WEBHOOK_URL', 'http://localhost:5678/webhook/transaction-created');
+        // Load relationships to send full data
+        $payload = $order->load('products')->toArray();
+        \Illuminate\Support\Facades\Http::timeout(2)->post($webhookUrl, $payload);
+    } catch (\Throwable $e) {
+        \Illuminate\Support\Facades\Log::error('n8n Webhook failed: ' . $e->getMessage());
+    }
+
     return response()->json([
         'success' => true,
         'order_id' => $order->order_id,

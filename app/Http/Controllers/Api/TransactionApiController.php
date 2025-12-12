@@ -29,14 +29,21 @@ class TransactionApiController extends Controller
         'payment_method' => 'required|in:Cash,GCash,Card',
     ]);
 
-    // Calculate total amount and create transaction items
+    // 1. Create the transaction record FIRST so we have an ID
+    $transaction = Transaction::create([
+        'total_amount' => 0, // Will update later
+        'payment_method' => $validated['payment_method'],
+        'status' => 'pending',
+    ]);
+
     $totalAmount = 0;
+    
+    // 2. Create items linked to the transaction
     foreach ($validated['items'] as $item) {
-        // Get the product from DB
         $product = Product::find($item['product_id']);
         
-        // Determine price based on size
-        switch ($item['size']) {
+        // Determine price
+        switch ($item['size'] ?? null) {
             case 'small':
                 $price = $product->price_small ?? $product->price;
                 break;
@@ -51,35 +58,43 @@ class TransactionApiController extends Controller
                 break;
         }
 
-        // Optional: Apply surcharge for hot drinks
-        if ($item['temperature'] === 'hot') {
-            $price += 5;  // Example surcharge
+        if (($item['temperature'] ?? '') === 'hot') {
+            $price += 5; 
         }
 
-        // Calculate subtotal
         $subtotal = $price * $item['quantity'];
         $totalAmount += $subtotal;
 
-        // Save the transaction item
         TransactionItem::create([
             'transaction_id' => $transaction->id,
             'product_id' => $product->id,
             'quantity' => $item['quantity'],
             'price' => $price,
-            'temperature' => $item['temperature'],
-            'size' => $item['size'],
+            'temperature' => $item['temperature'] ?? null,
+            'size' => $item['size'] ?? null,
             'subtotal' => $subtotal,
         ]);
     }
 
-    // Create the transaction record
-    $transaction = Transaction::create([
-        'total_amount' => $totalAmount,
-        'payment_method' => $validated['payment_method'],
-        'status' => 'pending',
-    ]);
+    // 3. Update total amount
+    $transaction->update(['total_amount' => $totalAmount]);
 
-    // Return the transaction details
+    // 4. Trigger n8n Webhook (Fire and forget, or catch errors so flow doesn't break)
+    try {
+        $webhookUrl = env('N8N_WEBHOOK_URL', 'http://localhost:5678/webhook/transaction-created');
+        
+        // Prepare payload with eager loaded items
+        $payload = $transaction->load('items.product')->toArray();
+        
+        // Send async or with short timeout so POS doesn't hang
+        \Illuminate\Support\Facades\Http::timeout(2)
+            ->post($webhookUrl, $payload);
+            
+    } catch (\Throwable $e) {
+        // Log error but don't fail the transaction
+        \Illuminate\Support\Facades\Log::error('n8n Webhook failed: ' . $e->getMessage());
+    }
+
     return response()->json([
         'transaction_id' => $transaction->id,
         'total_amount' => $totalAmount,

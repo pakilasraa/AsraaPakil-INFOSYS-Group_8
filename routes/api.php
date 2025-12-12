@@ -148,6 +148,7 @@ Route::post('/pos/checkout', function (Request $request) {
 |--------------------------------------------------------------------------
 */
 Route::post('/ai/recommend', [AiController::class, 'recommend']);
+Route::post('/recommend-products', [AiController::class, 'recommendWithN8n']);
 
 /*
 |--------------------------------------------------------------------------

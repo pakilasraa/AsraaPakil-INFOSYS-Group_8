@@ -250,4 +250,67 @@ PROMPT;
 }
 
 
+    /**
+     * Helper to get menu JSON for AI context
+     */
+    private function getMenuContext()
+    {
+        $drinkCategoryIds = [1, 2, 5];
+        $foodCategoryIds  = [3, 4];
+        $allowedCategoryIds = array_merge($drinkCategoryIds, $foodCategoryIds);
+
+        $products = Product::whereIn('category_id', $allowedCategoryIds)
+            ->orderBy('name')
+            ->get([
+                'id', 'name', 'category_id', 'price',
+                'price_small', 'price_medium', 'price_large',
+            ]);
+
+        return $products->map(function ($p) use ($drinkCategoryIds) {
+            $type = in_array($p->category_id, $drinkCategoryIds) ? 'drink' : 'food';
+            return [
+                'id'           => $p->id,
+                'name'         => $p->name,
+                'type'         => $type,
+                'price'        => (float) $p->price,
+                'price_small'  => (float) $p->price_small,
+                'price_medium' => (float) $p->price_medium,
+                'price_large'  => (float) $p->price_large,
+            ];
+        })->values()->toJson();
+    }
+
+    /**
+     * POST /api/recommend-products
+     * Proxies to n8n with rich context (Menu + Budget)
+     */
+    public function recommendWithN8n(Request $request)
+    {
+        $validated = $request->validate([
+            'preferences' => 'required|string',
+            'budget'      => 'nullable|numeric',
+        ]);
+
+        $n8nUrl = 'http://localhost:5678/webhook-test/recommend-products';
+        
+        // Build context
+        $menuJson = $this->getMenuContext();
+        
+        try {
+            $response = Http::post($n8nUrl, [
+                'preferences' => $validated['preferences'],
+                'budget'      => $validated['budget'] ?? null,
+                'menu_context'=> $menuJson, 
+            ]);
+
+            return response($response->body(), $response->status())
+                ->header('Content-Type', 'application/json');
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to connect to n8n',
+                'details' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
