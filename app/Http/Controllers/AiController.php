@@ -2,315 +2,312 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\Transaction;
+use App\Models\Order;
+use App\Models\TransactionItem;
 
 class AiController extends Controller
 {
-    /**
-     * POST /api/ai/recommend
-     *
-     * Body JSON:
-     * {
-     *   "preferences": "I want a sweet iced non-coffee drink"
-     * }
-     *
-     * Response JSON: array of suggestions
-     */
-    public function recommend(Request $request)
-{
-    // 1) Validate input
-    $data = $request->validate([
-        'preferences' => ['required', 'string', 'max:500'],
-    ]);
-
-    $preferences = $data['preferences'];
-
-// 2) Category IDs
-// TODO: palitan ang mga numbers sa ACTUAL IDs sa `categories` table mo.
-$drinkCategoryIds = [1, 2, 5];   // hal. Coffee, Non-Coffee, Tea
-$foodCategoryIds  = [3, 4];      // hal. Pastries, Sandwiches
-$allowedCategoryIds = array_merge($drinkCategoryIds, $foodCategoryIds);
-
-// 3) Simple heuristics: gusto ba niya ng DRINK / FOOD?
-$lower = mb_strtolower($preferences);
-
-$drinkKeywords = ['drink', 'coffee', 'latte', 'tea', 'milk tea', 'iced', 'hot', 'matcha'];
-$foodKeywords  = ['eat', 'pastry', 'pastries', 'muffin', 'croissant', 'sandwich', 'snack', 'cake', 'cookie'];
-
-$wantsDrink = false;
-foreach ($drinkKeywords as $word) {
-    if (str_contains($lower, $word)) {
-        $wantsDrink = true;
-        break;
-    }
-}
-
-$wantsFood = false;
-foreach ($foodKeywords as $word) {
-    if (str_contains($lower, $word)) {
-        $wantsFood = true;
-        break;
-    }
-}
-
-
-    // 4) Get products (drinks + foods only)
-    $products = Product::whereIn('category_id', $allowedCategoryIds)
-        ->orderBy('name')
-        ->get([
-            'id',
-            'name',
-            'category_id',
-            'price',
-            'price_small',
-            'price_medium',
-            'price_large',
-        ]);
-
-    // 5) Build menu JSON with type = "drink" | "food"
-    $productsJson = $products->map(function ($p) use ($drinkCategoryIds, $foodCategoryIds) {
-        $type = in_array($p->category_id, $drinkCategoryIds)
-            ? 'drink'
-            : 'food';
-
-        return [
-            'id'           => $p->id,
-            'name'         => $p->name,
-            'category_id'  => $p->category_id,
-            'type'         => $type, // drink or food
-            'price'        => $p->price !== null ? (float) $p->price : null,
-            'price_small'  => $p->price_small !== null ? (float) $p->price_small : null,
-            'price_medium' => $p->price_medium !== null ? (float) $p->price_medium : null,
-            'price_large'  => $p->price_large !== null ? (float) $p->price_large : null,
-        ];
-    })->values()->toJson();
-
-    // 6) Prompt for Ollama
-    $prompt = <<<PROMPT
-You are a barista assistant for a cafe.
-
-The menu JSON contains both drinks and foods.
-Each item has:
-- id
-- name
-- type: "drink" or "food"
-- prices (base price and optional size-based prices for drinks)
-
-BEHAVIOR RULES (VERY IMPORTANT):
-- There are two boolean flags: UserWantsDrink and UserWantsFood.
-- If UserWantsDrink is true AND UserWantsFood is false:
-    - The FIRST item in your list MUST be a DRINK (type = "drink").
-    - You MAY add 0-2 FOOD items (type = "food") as side snacks.
-- If UserWantsFood is true AND UserWantsDrink is false:
-    - The FIRST item in your list MUST be a FOOD item (type = "food").
-    - You MAY add 0-1 DRINK items (type = "drink") as a pairing.
-- If BOTH UserWantsDrink and UserWantsFood are true:
-    - The FIRST item MUST be a DRINK.
-    - The SECOND item SHOULD be a FOOD item if possible.
-- If both are false, choose reasonable items based on the preferences text.
-- Do NOT return items that are not in the menu.
-- Do NOT invent products.
-- Do NOT return only food items when UserWantsDrink is true.
-- Do NOT return only drink items when UserWantsFood is true.
-
-Output format:
-Respond STRICTLY as a JSON array of objects with fields:
-- product_id (number, from menu.id)
-- type ("drink" or "food")
-- size (for drinks: "small","medium","large"; for food: null)
-- reason (short string, why it fits)
-
-Do not include any text before or after the JSON.
-
-UserWantsDrink: {$wantsDrink}
-UserWantsFood: {$wantsFood}
-Customer preferences: "{$preferences}"
-
-Menu JSON:
-{$productsJson}
-PROMPT;
-
-
-    // 7) Call Ollama
-    try {
-        $response = Http::timeout(180)->post('http://127.0.0.1:11434/api/chat', [
-            'model' => 'llama3',
-            'stream' => false,
-            'messages' => [
-                [
-                    'role' => 'user',
-                    'content' => $prompt,
-                ],
-            ],
-        ]);
-    } catch (\Throwable $e) {
-        return response()->json([
-            'error' => 'Cannot connect to AI service',
-            'details' => $e->getMessage(),
-        ], 500);
-    }
-
-    if (! $response->ok()) {
-        return response()->json([
-            'error' => 'AI service error',
-            'details' => $response->body(),
-        ], 500);
-    }
-
-    $raw = $response->json();
-
-    // 8) Kunin ang content sa posibleng formats
-    $content = null;
-
-    if (isset($raw['message']['content'])) {
-        $content = $raw['message']['content'];
-    } elseif (isset($raw['message']) && is_string($raw['message'])) {
-        $content = $raw['message'];
-    } elseif (isset($raw['response']) && is_string($raw['response'])) {
-        $content = $raw['response'];
-    }
-
-    if (! $content) {
-        return response()->json([
-            'error' => 'Invalid AI response format',
-            'raw'   => $raw,
-        ], 500);
-    }
-
-    // 9) Parse JSON from content
-    $suggestions = json_decode($content, true);
-
-    if (! is_array($suggestions)) {
-        if (preg_match('/(\[.*\]|\{.*\})/s', $content, $m)) {
-            $suggestions = json_decode($m[1], true);
-        }
-    }
-
-    if (! is_array($suggestions)) {
-        return response()->json([
-            'error' => 'AI did not return valid JSON',
-            'raw'   => $content,
-        ], 500);
-    }
-
-    // 10) Enrich suggestions with product info + unit price
-    $enriched = collect($suggestions)->map(function ($item) use ($products, $drinkCategoryIds, $foodCategoryIds) {
-        $productId = $item['product_id'] ?? null;
-        $product = $products->firstWhere('id', $productId);
-
-        if (! $product) {
-            return null; // AI referenced unknown product_id
-        }
-
-        $isDrink = in_array($product->category_id, $drinkCategoryIds);
-        $type = $item['type'] ?? ($isDrink ? 'drink' : 'food');
-        $size = $item['size'] ?? null;
-
-        if ($type === 'drink') {
-            // default size kung wala
-            if (! $size) {
-                $size = 'medium';
-            }
-
-            switch ($size) {
-                case 'small':
-                    $unitPrice = $product->price_small ?? $product->price;
-                    break;
-                case 'large':
-                    $unitPrice = $product->price_large ?? $product->price;
-                    break;
-                case 'medium':
-                default:
-                    $unitPrice = $product->price_medium ?? $product->price;
-                    break;
-            }
-        } else {
-            // FOOD: walang size, unit_price = base price
-            $size = null;
-            $unitPrice = $product->price ?? 0;
-        }
-
-        return [
-            'product_id'   => $product->id,
-            'name'         => $product->name,
-            'type'         => $type,      // drink or food
-            'size'         => $size,      // null for food
-            'reason'       => $item['reason'] ?? '',
-            'unit_price'   => (float) $unitPrice,
-            'price'        => $product->price !== null ? (float) $product->price : null,
-            'price_small'  => $product->price_small !== null ? (float) $product->price_small : null,
-            'price_medium' => $product->price_medium !== null ? (float) $product->price_medium : null,
-            'price_large'  => $product->price_large !== null ? (float) $product->price_large : null,
-        ];
-    })->filter()->values();
-
-    return response()->json($enriched);
-}
-
-
-    /**
-     * Helper to get menu JSON for AI context
-     */
-    private function getMenuContext()
+    // Web UI for AI Assistant
+    public function index()
     {
-        $drinkCategoryIds = [1, 2, 5];
-        $foodCategoryIds  = [3, 4];
-        $allowedCategoryIds = array_merge($drinkCategoryIds, $foodCategoryIds);
-
-        $products = Product::whereIn('category_id', $allowedCategoryIds)
-            ->orderBy('name')
-            ->get([
-                'id', 'name', 'category_id', 'price',
-                'price_small', 'price_medium', 'price_large',
-            ]);
-
-        return $products->map(function ($p) use ($drinkCategoryIds) {
-            $type = in_array($p->category_id, $drinkCategoryIds) ? 'drink' : 'food';
-            return [
-                'id'           => $p->id,
-                'name'         => $p->name,
-                'type'         => $type,
-                'price'        => (float) $p->price,
-                'price_small'  => (float) $p->price_small,
-                'price_medium' => (float) $p->price_medium,
-                'price_large'  => (float) $p->price_large,
-            ];
-        })->values()->toJson();
+        return view('ai.index');
     }
 
-    /**
-     * POST /api/recommend-products
-     * Proxies to n8n with rich context (Menu + Budget)
-     */
-    public function recommendWithN8n(Request $request)
+    // API for Admin Chat (Web)
+    public function adminChat(Request $request)
     {
-        $validated = $request->validate([
-            'preferences' => 'required|string',
-            'budget'      => 'nullable|numeric',
+        $request->validate([
+            'message' => 'required|string|max:5000',
         ]);
 
-        $n8nUrl = 'http://localhost:5678/webhook-test/recommend-products';
-        
-        // Build context
-        $menuJson = $this->getMenuContext();
-        
+        $userMessage = trim((string) $request->input('message'));
+
+        if ($userMessage === '') {
+            return response()->json(['message' => 'Please type a message.'], 422);
+        }
+
+        // Optional: allow frontend to reset the chat by sending reset=true
+        if ($request->boolean('reset')) {
+            try {
+                if (method_exists($request, 'session')) {
+                    $request->session()->forget('ai_history');
+                }
+            } catch (\Throwable $t) {
+                // ignore if session not available
+            }
+        }
+
+        // Small dynamic context
+        $storeName = 'DeSeventeen POS';
+        $currency = 'PHP';
+        $now = now()->format('Y-m-d H:i');
+
+        // GATHER REAL DB STATS
+        $contextData = $this->getBusinessContext();
+        $salesContext = $contextData['summary_text'];
+
+        // SYSTEM prompt: smarter + interactive + structured
+        $systemPrompt = <<<SYS
+You are "DeSeventeen Assistant", a smart, practical, and friendly cafe business assistant for {$storeName}.
+
+PRIMARY GOAL:
+Help the admin with sales insights, menu/product strategy, inventory tips, staff operations, promotions, customer experience, and POS workflows—using clear and actionable advice.
+
+REAL-TIME BUSINESS CONTEXT (Database):
+{$salesContext}
+Note: If inventory data is mentioned as 'N/A' or not tracked, explain that the system currently doesn't track stock levels in the database.
+
+CONTEXT:
+- Business type: Cafe
+- Currency: {$currency}
+- Current datetime: {$now}
+- You NOW have access to the above summary data.
+
+BEHAVIOR RULES:
+1) Be interactive: If the request is missing key details, ask up to 2 clarifying questions BEFORE making assumptions.
+2) Use the REAL-TIME BUSINESS CONTEXT provided above to answer questions about sales or top items.
+3) Provide actionable outputs: steps, checklists, simple calculations, and concrete examples.
+4) Prefer Taglish (Filipino + English) unless the admin uses pure English; then reply in English.
+5) Keep replies helpful and concise; avoid long essays unless the admin asks for detail.
+6) If the admin asks for "insights", suggest what to check (gross/net sales, transactions, AOV, top items, peak hours, slow movers, margins, wastage).
+7) When giving recommendations, include: (a) reason, (b) measurable next step.
+
+DEFAULT RESPONSE FORMAT (use most of the time):
+**Quick Answer:** (1–3 sentences)
+**Key Insights:** (bullets)
+**Recommended Actions:** (numbered steps)
+**Question (if needed):** (1–2 questions max)
+
+TONE:
+Warm, professional, slightly conversational.
+SYS;
+
+        // Session-based history (for more interactive multi-turn chat)
+        $maxHistoryMessages = 12; // excluding system
+        $history = [];
+
         try {
-            $response = Http::post($n8nUrl, [
-                'preferences' => $validated['preferences'],
-                'budget'      => $validated['budget'] ?? null,
-                'menu_context'=> $menuJson, 
-            ]);
+            if (method_exists($request, 'session')) {
+                $history = $request->session()->get('ai_history', []);
+            }
+        } catch (\Throwable $t) {
+            $history = [];
+        }
 
-            return response($response->body(), $response->status())
-                ->header('Content-Type', 'application/json');
+        // Sanitize history
+        if (!is_array($history)) {
+            $history = [];
+        }
+
+        $history = array_values(array_filter($history, function ($m) {
+            return is_array($m)
+                && isset($m['role'], $m['content'])
+                && in_array($m['role'], ['user', 'assistant'], true)
+                && is_string($m['content'])
+                && trim($m['content']) !== '';
+        }));
+
+        // Add latest user message
+        $history[] = ['role' => 'user', 'content' => $userMessage];
+
+        // Trim history
+        if (count($history) > $maxHistoryMessages) {
+            $history = array_slice($history, -$maxHistoryMessages);
+        }
+
+        // Final messages: system + history
+        $messages = array_merge(
+            [['role' => 'system', 'content' => $systemPrompt]],
+            $history
+        );
+
+        Log::info('AI System Prompt:', ['prompt' => $systemPrompt]); // DEBUG LOG
+
+        try {
+            // Optional: make URL configurable (falls back to local)
+            $ollamaUrl = config('services.ollama.url', 'http://127.0.0.1:11434');
+
+            $response = Http::timeout(120)
+                ->acceptJson()
+                ->asJson()
+                ->post($ollamaUrl . '/api/chat', [
+                    'model' => 'llama3',
+                    'stream' => false,
+                    'messages' => $messages,
+                    'options' => [
+                        // Tune for stability + less hallucination
+                        'temperature' => 0.4,
+                        'top_p' => 0.9,
+                        'num_ctx' => 4096,
+                    ],
+                ]);
+
+            if (!$response->successful()) {
+                Log::warning('Ollama chat failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+
+                return response()->json([
+                    'message' => 'AI is sleeping (Error: ' . $response->status() . ')'
+                ], 500);
+            }
+
+            $content = data_get($response->json(), 'message.content');
+
+            if (!is_string($content) || trim($content) === '') {
+                Log::warning('Ollama response missing message.content', [
+                    'json' => $response->json(),
+                ]);
+
+                return response()->json([
+                    'message' => 'AI returned an empty response. Try again.'
+                ], 500);
+            }
+
+            // Save assistant reply for next turn
+            $history[] = ['role' => 'assistant', 'content' => $content];
+
+            if (count($history) > $maxHistoryMessages) {
+                $history = array_slice($history, -$maxHistoryMessages);
+            }
+
+            try {
+                if (method_exists($request, 'session')) {
+                    $request->session()->put('ai_history', $history);
+                }
+            } catch (\Throwable $t) {
+                // ignore if session not available (e.g., API routes)
+            }
+
+            return response()->json(['message' => $content]);
 
         } catch (\Exception $e) {
+            Log::error('Connection to Ollama failed', [
+                'error' => $e->getMessage(),
+            ]);
+
             return response()->json([
-                'error' => 'Failed to connect to n8n',
-                'details' => $e->getMessage()
+                'message' => 'Connection to AI failed. Is Ollama running?'
             ], 500);
+        }
+    }
+
+    // API for Sales Insights (Web)
+    public function salesInsights(Request $request)
+    {
+        // Stub implementation
+        return response()->json([
+            'insights' => 'Sales are trending up! (Stub)'
+        ]);
+    }
+
+    // Debug Context (Web)
+    public function debugContext(Request $request)
+    {
+        $historyCount = 0;
+
+        try {
+            if (method_exists($request, 'session')) {
+                $history = $request->session()->get('ai_history', []);
+                $historyCount = is_array($history) ? count($history) : 0;
+            }
+        } catch (\Throwable $t) {
+            $historyCount = 0;
+        }
+
+        return response()->json([
+            'status' => 'Debug context active',
+            'history_count' => $historyCount,
+        ]);
+    }
+
+    // REMOVED: recommend (FlutterFlow)
+    // REMOVED: recommendWithN8n (FlutterFlow)
+
+    /**
+     * Helper: Fetch summary stats from DB
+     */
+    private function getBusinessContext()
+    {
+        try {
+            // 1. Daily Sales from POS Transactions
+            $today = now()->format('Y-m-d');
+            
+            $posSales = Transaction::whereDate('created_at', $today)->sum('total_amount');
+            $posCount = Transaction::whereDate('created_at', $today)->count();
+
+            // 2. Daily Sales from Mobile Orders (Completed)
+            // Assuming 'status' = 'completed' or 'paid'. If uncertain, we count all 'completed'.
+            $mobileSales = Order::whereDate('created_at', $today)
+                // ->where('status', 'completed') // Uncomment if you want only completed
+                ->sum('total_price');
+            $mobileCount = Order::whereDate('created_at', $today)->count();
+
+            $totalSales = $posSales + $mobileSales;
+            $totalTxns  = $posCount + $mobileCount;
+
+            // 3. Top Selling Items (Today) - from POS Items
+            $topItems = TransactionItem::whereDate('created_at', $today)
+                ->with('product')
+                ->select('product_id', DB::raw('sum(quantity) as qty'))
+                ->groupBy('product_id')
+                ->orderByDesc('qty')
+                ->limit(3)
+                ->get();
+            
+            $topItemsList = $topItems->map(function($i) {
+                return ($i->product ? $i->product->name : 'Unknown Product') . " ({$i->qty})";
+            })->join(', ');
+
+            if (empty($topItemsList)) $topItemsList = "None yet";
+
+            // 4. Products & Categories (Menu)
+            $categories = Category::with('products')->get();
+            $menuList = [];
+            
+            foreach ($categories as $cat) {
+                $prods = $cat->products->map(function($p) {
+                    return "{$p->name} (₱" . number_format($p->price, 0) . ")";
+                })->join(', ');
+                
+                if (!empty($prods)) {
+                    $menuList[] = "- {$cat->name}: {$prods}";
+                }
+            }
+            $menuText = implode("\n", $menuList);
+            if (empty($menuText)) $menuText = "No menu items found.";
+
+            // Format for AI
+            $text = "
+DAILY STATS ({$today}):
+- Total Sales: ₱" . number_format($totalSales, 2) . "
+- Transactions: {$totalTxns} (POS: {$posCount}, Mobile: {$mobileCount})
+- Top Items (POS Today): {$topItemsList}
+- Inventory Tracking: Not enabled (No stock data available).
+
+FULL MENU & PRICES:
+{$menuText}
+            ";
+
+            return [
+                'summary_text' => trim($text),
+                'total_sales' => $totalSales,
+            ];
+
+        } catch (\Exception $e) {
+            Log::error("Error fetching AI context: " . $e->getMessage());
+            return [
+                'summary_text' => "Error fetching database stats. Please check logs.",
+                'total_sales' => 0
+            ];
         }
     }
 }

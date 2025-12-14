@@ -57,6 +57,12 @@
                 </a>
             </li>
             <li>
+                <a href="{{ route('ai.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-md {{ request()->routeIs('ai.index') ? 'bg-[#E9CDAF] text-[#3d2b1f] border-l-4 border-[#C59B78]' : 'hover:bg-white/10' }}">
+                    <span class="text-xl">🤖</span>
+                    <span class="text-sm font-medium">AI Assistant</span>
+                </a>
+            </li>
+            <li>
                 <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-3 py-2 rounded-md {{ request()->routeIs('profile.edit') ? 'bg-[#E9CDAF] text-[#3d2b1f] border-l-4 border-[#C59B78]' : 'hover:bg-white/10' }}">
                     <span class="text-xl">👤</span>
                     <span class="text-sm font-medium">Profile</span>

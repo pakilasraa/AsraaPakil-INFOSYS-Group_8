@@ -148,13 +148,6 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           builder: (context, params) => OrderHistory2Widget(),
         ),
         FFRoute(
-          name: AiPageWidget.routeName,
-          path: AiPageWidget.routePath,
-          builder: (context, params) => params.isEmpty
-              ? NavBarPage(initialPage: 'AiPage')
-              : AiPageWidget(),
-        ),
-        FFRoute(
           name: EDITitemDetailPageWidget.routeName,
           path: EDITitemDetailPageWidget.routePath,
           builder: (context, params) => EDITitemDetailPageWidget(
@@ -175,6 +168,11 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
               ParamType.int,
             ),
           ),
+        ),
+        FFRoute(
+          name: AIRecommendationPageWidget.routeName,
+          path: AIRecommendationPageWidget.routePath,
+          builder: (context, params) => AIRecommendationPageWidget(),
         )
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
     );

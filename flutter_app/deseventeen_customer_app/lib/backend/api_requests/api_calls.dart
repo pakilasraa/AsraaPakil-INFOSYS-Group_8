@@ -146,10 +146,10 @@ class SyncCustomerCall {
   }) async {
     final ffApiRequestBody = '''
 {
-  "firebase_uid": "${firebaseUid}",
-  "email": "${email}",
-  "name": "${name}",
-  "phone": "${phone}"
+  "firebase_uid": "${escapeStringForJson(firebaseUid)}",
+  "email": "${escapeStringForJson(email)}",
+  "name": "${escapeStringForJson(name)}",
+  "phone": "${escapeStringForJson(phone)}"
 }''';
     return ApiManager.instance.makeApiCall(
       callName: 'SyncCustomer',
@@ -157,7 +157,6 @@ class SyncCustomerCall {
       callType: ApiCallType.POST,
       headers: {
         'Content-Type': 'application/json',
-        'ngrok-skip-browser-warning': 'true',
       },
       params: {},
       body: ffApiRequestBody,
@@ -191,9 +190,7 @@ class PingApiCall {
       callName: 'PingApi',
       apiUrl: 'https://loida-gamelike-sara.ngrok-free.dev/api/ping',
       callType: ApiCallType.GET,
-      headers: {
-        'ngrok-skip-browser-warning': 'true',
-      },
+      headers: {},
       params: {},
       returnBody: true,
       encodeBodyUtf8: false,
@@ -207,20 +204,10 @@ class PingApiCall {
 
 class PlaceOrderCall {
   static Future<ApiCallResponse> call({
-    String? firebaseUid = '',
-    String? jsonBody,
+    String? jsonBody = '',
   }) async {
-    final ffApiRequestBody = jsonBody ?? '''
-{
-  "items": [
-    {
-      "product_id": 1,
-      "quantity": 2
-    }
-  ],
-  "total_price": 250
-}
-''';
+    final ffApiRequestBody = '''
+"${jsonBody}"''';
     return ApiManager.instance.makeApiCall(
       callName: 'PlaceOrder',
       apiUrl: 'https://loida-gamelike-sara.ngrok-free.dev/api/orders',
@@ -229,11 +216,10 @@ class PlaceOrderCall {
         'Authorization': '{{ currentUserJwtToken }}',
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'ngrok-skip-browser-warning': 'true',
       },
       params: {},
       body: ffApiRequestBody,
-      bodyType: BodyType.JSON,
+      bodyType: BodyType.TEXT,
       returnBody: true,
       encodeBodyUtf8: false,
       decodeUtf8: false,
@@ -250,9 +236,7 @@ class GetCartItemsCall {
       callName: 'GetCartItems',
       apiUrl: 'https://loida-gamelike-sara.ngrok-free.dev/api/cart',
       callType: ApiCallType.GET,
-      headers: {
-        'ngrok-skip-browser-warning': 'true',
-      },
+      headers: {},
       params: {},
       returnBody: true,
       encodeBodyUtf8: false,
@@ -272,7 +256,6 @@ class OrderHistoryCall {
       callType: ApiCallType.GET,
       headers: {
         'Authorization': '<Firebase ID Token>',
-        'ngrok-skip-browser-warning': 'true',
       },
       params: {},
       returnBody: true,
@@ -285,21 +268,24 @@ class OrderHistoryCall {
   }
 }
 
-class GetAiRecommendationsxCall {
+class GetAiStockRecommendationsxCall {
   static Future<ApiCallResponse> call({
-    String? preferenceString = '',
+    String? menuContext = '',
+    String? userPreferences = '',
+    String? userBudget = '',
   }) async {
     final ffApiRequestBody = '''
 {
-  "preferences": "${escapeStringForJson(preferenceString)}"
+  "menu_context": "${escapeStringForJson(menuContext)}",
+  "preferences": "${escapeStringForJson(userPreferences)}",
+  "budget": "${escapeStringForJson(userBudget)}"
 }''';
     return ApiManager.instance.makeApiCall(
-      callName: 'GetAiRecommendationsx',
-      apiUrl: 'https://loida-gamelike-sara.ngrok-free.dev/api/recommend-products',
+      callName: 'GetAiStockRecommendationsx',
+      apiUrl: 'http://localhost:5678/webhook-test/recommend-products',
       callType: ApiCallType.POST,
       headers: {
         'Content-Type': 'application/json',
-        'ngrok-skip-browser-warning': 'true',
       },
       params: {},
       body: ffApiRequestBody,

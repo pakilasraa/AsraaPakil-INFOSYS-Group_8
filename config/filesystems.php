@@ -15,6 +15,8 @@ return [
 
     'default' => env('FILESYSTEM_DISK', 'local'),
 
+    'credentials' => env('FIREBASE_CREDENTIALS'),
+    'project_id' => env('FIREBASE_PROJECT_ID'),
     /*
     |--------------------------------------------------------------------------
     | Filesystem Disks

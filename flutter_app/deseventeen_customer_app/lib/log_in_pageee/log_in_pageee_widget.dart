@@ -633,13 +633,25 @@ class _LogInPageeeWidgetState extends State<LogInPageeeWidget> {
                                           return;
                                         }
 
-                                        await SyncCustomerCall.call(
+                                        _model.syncResult =
+                                            await SyncCustomerCall.call(
                                           firebaseUid: currentUserUid,
                                           email: currentUserEmail,
                                           name: currentUserDisplayName,
                                           phone: currentPhoneNumber,
                                         );
 
+                                        FFAppState().customerName =
+                                            getJsonField(
+                                          (_model.syncResult?.jsonBody ?? ''),
+                                          r'''$.name''',
+                                        ).toString();
+                                        FFAppState().customerPhone =
+                                            getJsonField(
+                                          (_model.syncResult?.jsonBody ?? ''),
+                                          r'''$.phone''',
+                                        ).toString();
+                                        safeSetState(() {});
                                         FFAppState().customerId =
                                             FFAppState().customerId;
                                         safeSetState(() {});
@@ -647,6 +659,8 @@ class _LogInPageeeWidgetState extends State<LogInPageeeWidget> {
                                         context.pushNamedAuth(
                                             HomePageWidget.routeName,
                                             context.mounted);
+
+                                        safeSetState(() {});
                                       },
                                       text: 'Login',
                                       options: FFButtonOptions(

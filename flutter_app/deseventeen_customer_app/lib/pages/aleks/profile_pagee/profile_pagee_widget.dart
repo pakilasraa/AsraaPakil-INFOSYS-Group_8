@@ -257,58 +257,79 @@ class _ProfilePageeWidgetState extends State<ProfilePageeWidget> {
                           child: Column(
                             mainAxisSize: MainAxisSize.max,
                             children: [
-                              Container(
-                                width: double.infinity,
-                                height: 60.0,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12.0),
-                                ),
-                                child: Padding(
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      20.0, 0.0, 20.0, 0.0),
-                                  child: InkWell(
-                                    splashColor: Colors.transparent,
-                                    focusColor: Colors.transparent,
-                                    hoverColor: Colors.transparent,
-                                    highlightColor: Colors.transparent,
-                                    onTap: () async {
-                                      context.pushNamed(
-                                          OrderHistory2Widget.routeName);
-                                    },
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.max,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Row(
-                                          mainAxisSize: MainAxisSize.max,
-                                          children: [
-                                            Container(
-                                              width: 40.0,
-                                              height: 40.0,
-                                              decoration: BoxDecoration(
-                                                color: Color(0xFFFFEEE8),
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: Align(
-                                                alignment: AlignmentDirectional(
-                                                    0.0, 0.0),
-                                                child: Icon(
-                                                  Icons.history,
-                                                  color: Color(0xFF8B4513),
-                                                  size: 20.0,
+                              InkWell(
+                                splashColor: Colors.transparent,
+                                focusColor: Colors.transparent,
+                                hoverColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
+                                onTap: () async {
+                                  context
+                                      .pushNamed(OrderHistory2Widget.routeName);
+                                },
+                                child: Container(
+                                  width: double.infinity,
+                                  height: 60.0,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                  ),
+                                  child: Padding(
+                                    padding: EdgeInsetsDirectional.fromSTEB(
+                                        20.0, 0.0, 20.0, 0.0),
+                                    child: InkWell(
+                                      splashColor: Colors.transparent,
+                                      focusColor: Colors.transparent,
+                                      hoverColor: Colors.transparent,
+                                      highlightColor: Colors.transparent,
+                                      onTap: () async {
+                                        context.pushNamed(
+                                            OrderHistory2Widget.routeName);
+                                      },
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.max,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          Row(
+                                            mainAxisSize: MainAxisSize.max,
+                                            children: [
+                                              Container(
+                                                width: 40.0,
+                                                height: 40.0,
+                                                decoration: BoxDecoration(
+                                                  color: Color(0xFFFFEEE8),
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: Align(
+                                                  alignment:
+                                                      AlignmentDirectional(
+                                                          0.0, 0.0),
+                                                  child: Icon(
+                                                    Icons.history,
+                                                    color: Color(0xFF8B4513),
+                                                    size: 20.0,
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                            Text(
-                                              'Order History',
-                                              style: FlutterFlowTheme.of(
-                                                      context)
-                                                  .bodyLarge
-                                                  .override(
-                                                    font: GoogleFonts.inter(
+                                              Text(
+                                                'Order History',
+                                                style: FlutterFlowTheme.of(
+                                                        context)
+                                                    .bodyLarge
+                                                    .override(
+                                                      font: GoogleFonts.inter(
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyLarge
+                                                                .fontStyle,
+                                                      ),
+                                                      color: Color(0xFF2D1B0F),
+                                                      fontSize: 16.0,
+                                                      letterSpacing: 0.0,
                                                       fontWeight:
                                                           FontWeight.w500,
                                                       fontStyle:
@@ -317,25 +338,16 @@ class _ProfilePageeWidgetState extends State<ProfilePageeWidget> {
                                                               .bodyLarge
                                                               .fontStyle,
                                                     ),
-                                                    color: Color(0xFF2D1B0F),
-                                                    fontSize: 16.0,
-                                                    letterSpacing: 0.0,
-                                                    fontWeight: FontWeight.w500,
-                                                    fontStyle:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodyLarge
-                                                            .fontStyle,
-                                                  ),
-                                            ),
-                                          ].divide(SizedBox(width: 16.0)),
-                                        ),
-                                        Icon(
-                                          Icons.chevron_right,
-                                          color: Color(0xFF6B4423),
-                                          size: 20.0,
-                                        ),
-                                      ],
+                                              ),
+                                            ].divide(SizedBox(width: 16.0)),
+                                          ),
+                                          Icon(
+                                            Icons.chevron_right,
+                                            color: Color(0xFF6B4423),
+                                            size: 20.0,
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),

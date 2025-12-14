@@ -8,6 +8,7 @@ use App\Http\Controllers\PosController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\AiController;
 use Illuminate\Support\Facades\Route;
 
 // Landing = login page
@@ -21,6 +22,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
+
+    // AI Assistant
+    Route::get('/ai', [AiController::class, 'index'])->name('ai.index');
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -61,3 +65,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 // Laravel Breeze / auth routes
 require __DIR__.'/auth.php';
+
+// Fallback for Flutter Web (SPA)
+Route::fallback(function () {
+    // If the request expects JSON, return 404.
+    if (request()->expectsJson()) {
+        return response()->json(['message' => 'Not Found.'], 404);
+    }
+    // Otherwise serve the Flutter app
+    // Ensure public/index.html exists after running `flutter build web`
+    return file_get_contents(public_path('index.html'));
+});

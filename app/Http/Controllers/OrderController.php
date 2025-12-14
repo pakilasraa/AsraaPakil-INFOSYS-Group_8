@@ -31,6 +31,8 @@ class OrderController extends Controller
 }
 
 
+
+
     // Update the status of an order (e.g., from pending to confirmed)
     public function updateStatus($id, Request $request)
     {

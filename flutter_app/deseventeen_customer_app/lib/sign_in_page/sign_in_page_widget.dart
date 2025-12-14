@@ -74,8 +74,6 @@ class _SignInPageWidgetState extends State<SignInPageWidget> {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<FFAppState>();
-
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -947,20 +945,29 @@ class _SignInPageWidgetState extends State<SignInPageWidget> {
                                         return;
                                       }
 
-                                      await SyncCustomerCall.call(
+                                      _model.syncResult =
+                                          await SyncCustomerCall.call(
                                         firebaseUid: currentUserUid,
                                         email: currentUserEmail,
                                         name: currentUserDisplayName,
                                         phone: currentPhoneNumber,
                                       );
 
-                                      FFAppState().customerId =
-                                          FFAppState().customerId;
+                                      FFAppState().customerName = getJsonField(
+                                        (_model.syncResult?.jsonBody ?? ''),
+                                        r'''$.name''',
+                                      ).toString();
+                                      FFAppState().customerPhone = getJsonField(
+                                        (_model.syncResult?.jsonBody ?? ''),
+                                        r'''$.phone''',
+                                      ).toString();
                                       safeSetState(() {});
 
                                       context.pushNamedAuth(
                                           HomePageWidget.routeName,
                                           context.mounted);
+
+                                      safeSetState(() {});
                                     },
                                     text: 'Create account',
                                     options: FFButtonOptions(

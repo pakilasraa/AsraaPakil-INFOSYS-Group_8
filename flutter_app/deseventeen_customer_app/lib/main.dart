@@ -144,7 +144,6 @@ class _NavBarPageState extends State<NavBarPage> {
       'HomePage': HomePageWidget(),
       'MenuPage': MenuPageWidget(),
       'CartPage': CartPageWidget(),
-      'AiPage': AiPageWidget(),
     };
     final currentIndex = tabs.keys.toList().indexOf(_currentPageName);
 
@@ -181,13 +180,6 @@ class _NavBarPageState extends State<NavBarPage> {
           BottomNavigationBarItem(
             icon: Icon(
               Icons.shopping_cart,
-            ),
-            label: '',
-            tooltip: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.wechat_sharp,
             ),
             label: '',
             tooltip: '',

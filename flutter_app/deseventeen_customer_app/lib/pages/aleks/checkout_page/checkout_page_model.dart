@@ -3,7 +3,6 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/upload_data.dart';
-import '/pages/aleks/order_placed_comp/order_placed_comp_widget.dart';
 import 'dart:ui';
 import '/flutter_flow/custom_functions.dart' as functions;
 import 'checkout_page_widget.dart' show CheckoutPageWidget;
@@ -23,6 +22,14 @@ class CheckoutPageModel extends FlutterFlowModel<CheckoutPageWidget> {
 
   double? orderTotal = 0.0;
 
+  String? customerName = '';
+
+  String? customerPhone;
+
+  String? address;
+
+  String? proofUrl;
+
   ///  State fields for stateful widgets in this page.
 
   bool isDataUploading_uploadDataZ98 = false;
@@ -41,8 +48,6 @@ class CheckoutPageModel extends FlutterFlowModel<CheckoutPageWidget> {
   FocusNode? textFieldFocusNode3;
   TextEditingController? textController3;
   String? Function(BuildContext, String?)? textController3Validator;
-  // Stores action output result for [Backend Call - API (PlaceOrder)] action in Button widget.
-  ApiCallResponse? apiResultnt5;
 
   @override
   void initState(BuildContext context) {}

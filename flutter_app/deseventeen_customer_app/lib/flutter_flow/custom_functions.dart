@@ -66,3 +66,31 @@ double computeOrderTotal(
 ) {
   return subtotal + deliveryFee;
 }
+
+String? prepareOrderJson(
+  List<dynamic>? cart,
+  String? customerName,
+  String? customerPhone,
+  double? total,
+  String? orderType,
+) {
+  {
+    final items = (cart ?? []).map((item) {
+      return {
+        "product_id": item['id'],
+        "quantity": item['qty'],
+        "size": item['size'],
+      };
+    }).toList();
+
+    final body = {
+      "items": items,
+      "total_price": total,
+      "customer_name": customerName,
+      "customer_phone": customerPhone,
+      "order_type": orderType,
+    };
+
+    return jsonEncode(body);
+  }
+}

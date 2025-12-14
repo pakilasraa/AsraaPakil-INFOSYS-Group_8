@@ -10,12 +10,26 @@ class Order extends Model
     use HasFactory;
 
     protected $fillable = [
-        'firebase_uid', 'order_id', 'customer_name', 'order_type', 'total_price', 'status'
-    ];
+    'firebase_uid',
+    'order_id',
+    'customer_name',
+    'customer_phone',
+    'address',
+    'order_type',
+    'total_price',
+    'status',
+    'items',
+];
 
-    public function products()
+protected $casts = [
+    'items' => 'array',
+];
+
+public function products()
 {
-    return $this->belongsToMany(Product::class)->withPivot('quantity', 'temperature');
+    // IMPORTANT: para match sa code mo sa API controller
+    return $this->belongsToMany(Product::class)
+        ->withPivot('quantity', 'size', 'temperature', 'unit_price');
 }
 
 

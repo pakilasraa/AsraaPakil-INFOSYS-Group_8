@@ -41,6 +41,8 @@ class SignInPageModel extends FlutterFlowModel<SignInPageWidget> {
   String? Function(BuildContext, String?)? textController5Validator;
   // State field(s) for Checkbox widget.
   bool? checkboxValue;
+  // Stores action output result for [Backend Call - API (SyncCustomer)] action in Button widget.
+  ApiCallResponse? syncResult;
 
   @override
   void initState(BuildContext context) {

@@ -25,6 +25,8 @@ class LogInPageeeModel extends FlutterFlowModel<LogInPageeeWidget> {
   String? Function(BuildContext, String?)? passwordTextControllerValidator;
   // State field(s) for Checkbox widget.
   bool? checkboxValue;
+  // Stores action output result for [Backend Call - API (SyncCustomer)] action in Button widget.
+  ApiCallResponse? syncResult;
 
   @override
   void initState(BuildContext context) {

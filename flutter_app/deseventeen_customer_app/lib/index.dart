@@ -12,6 +12,7 @@ export '/pages/aleks/profile_pagee/profile_pagee_widget.dart'
     show ProfilePageeWidget;
 export '/pages/order_history2/order_history2_widget.dart'
     show OrderHistory2Widget;
-export '/pages/ai_page/ai_page_widget.dart' show AiPageWidget;
 export '/e_d_i_titem_detail_page/e_d_i_titem_detail_page_widget.dart'
     show EDITitemDetailPageWidget;
+export '/a_i_recommendation_page/a_i_recommendation_page_widget.dart'
+    show AIRecommendationPageWidget;

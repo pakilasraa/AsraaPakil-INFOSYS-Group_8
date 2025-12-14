@@ -3,7 +3,6 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/upload_data.dart';
-import '/pages/aleks/order_placed_comp/order_placed_comp_widget.dart';
 import 'dart:ui';
 import '/flutter_flow/custom_functions.dart' as functions;
 import 'package:flutter/material.dart';
@@ -12,7 +11,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'checkout_page_model.dart';
 export 'checkout_page_model.dart';
-import 'dart:convert';
 
 /// Create a Checkout page for a café customer app using the DeSeventeen
 /// theme.
@@ -54,12 +52,10 @@ class _CheckoutPageWidgetState extends State<CheckoutPageWidget> {
       safeSetState(() {});
     });
 
-    _model.textController1 ??=
-        TextEditingController(text: FFAppState().customerName);
+    _model.textController1 ??= TextEditingController();
     _model.textFieldFocusNode1 ??= FocusNode();
 
-    _model.textController2 ??=
-        TextEditingController(text: FFAppState().customerPhone);
+    _model.textController2 ??= TextEditingController();
     _model.textFieldFocusNode2 ??= FocusNode();
 
     _model.textController3 ??= TextEditingController(text: 'Address');
@@ -1120,7 +1116,7 @@ class _CheckoutPageWidgetState extends State<CheckoutPageWidget> {
                                 controller: _model.textController1,
                                 focusNode: _model.textFieldFocusNode1,
                                 onFieldSubmitted: (_) async {
-                                  FFAppState().customerName =
+                                  _model.customerName =
                                       _model.textController1.text;
                                   safeSetState(() {});
                                 },
@@ -1218,7 +1214,7 @@ class _CheckoutPageWidgetState extends State<CheckoutPageWidget> {
                                 controller: _model.textController2,
                                 focusNode: _model.textFieldFocusNode2,
                                 onFieldSubmitted: (_) async {
-                                  FFAppState().customerPhone =
+                                  _model.customerPhone =
                                       _model.textController2.text;
                                   safeSetState(() {});
                                 },
@@ -1314,7 +1310,7 @@ class _CheckoutPageWidgetState extends State<CheckoutPageWidget> {
                               controller: _model.textController3,
                               focusNode: _model.textFieldFocusNode3,
                               onFieldSubmitted: (_) async {
-                                FFAppState().customerNotes = '';
+                                _model.address = _model.textController3.text;
                                 safeSetState(() {});
                               },
                               autofocus: false,
@@ -1408,162 +1404,23 @@ class _CheckoutPageWidgetState extends State<CheckoutPageWidget> {
                       ),
                     ),
                   ),
-                  Builder(
-                    builder: (context) => Padding(
-                      padding: EdgeInsetsDirectional.fromSTEB(
-                          16.0, 24.0, 16.0, 24.0),
-                      child: InkWell(
-                        splashColor: Colors.transparent,
-                        focusColor: Colors.transparent,
-                        hoverColor: Colors.transparent,
-                        highlightColor: Colors.transparent,
-                        onDoubleTap: () async {
-                          _model.apiResultnt5 = await PlaceOrderCall.call();
-
-                          if ((_model.apiResultnt5?.succeeded ?? true)) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Order Confirmed',
-                                  style: TextStyle(
-                                    color: FlutterFlowTheme.of(context)
-                                        .primaryText,
-                                  ),
-                                ),
-                                duration: Duration(milliseconds: 4000),
-                                backgroundColor:
-                                    FlutterFlowTheme.of(context).secondary,
-                              ),
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Failed to place the order. Please try again.',
-                                  style: TextStyle(
-                                    color: FlutterFlowTheme.of(context)
-                                        .primaryText,
-                                  ),
-                                ),
-                                duration: Duration(milliseconds: 4000),
-                                backgroundColor:
-                                    FlutterFlowTheme.of(context).secondary,
-                              ),
-                            );
-                          }
-
-                          safeSetState(() {});
-                        },
-                        child: FFButtonWidget(
-                          onPressed: () async {
-                            if ((FFAppState().customerName != null &&
-                                    FFAppState().customerName != '') &&
-                                (FFAppState().customerPhone != null &&
-                                    FFAppState().customerPhone != '')) {
-                              
-                              // 1. Prepare JSON Body
-                              final cartItems = FFAppState().Cart.map((item) {
-                                return {
-                                  "product_id": item['id'],
-                                  "quantity": item['qty'],
-                                  "size": item['size'],
-                                  // Add temperature if you have it in Cart
-                                };
-                              }).toList();
-
-                              final orderBody = {
-                                "items": cartItems,
-                                "total_price": FFAppState().cartSubtotal,
-                                "customer_name": FFAppState().customerName,
-                                "customer_phone": FFAppState().customerPhone,
-                                "order_type": FFAppState().orderType,
-                              };
-
-                              // 2. Call API
-                              _model.apiResultnt5 = await PlaceOrderCall.call(
-                                jsonBody: jsonEncode(orderBody),
-                              );
-
-                              // 3. Check Success
-                              if ((_model.apiResultnt5?.succeeded ?? true)) {
-                                  FFAppState().Cart = [];
-                                  safeSetState(() {});
-                                  FFAppState().cartSubtotal = 0.0;
-                                  safeSetState(() {});
-                                  FFAppState().addToOrderHistory(<String, dynamic>{
-                                    'customerName': FFAppState().customerName,
-                                    'customerPhoe': FFAppState().customerPhone,
-                                    'orderType': FFAppState().orderType,
-                                    'total': FFAppState().cartSubtotal,
-                                    'createdAt': getCurrentTimestamp,
-                                  });
-                                  safeSetState(() {});
-                                  
-                                  await showDialog(
-                                    context: context,
-                                    builder: (dialogContext) {
-                                      return Dialog(
-                                        elevation: 0,
-                                        insetPadding: EdgeInsets.zero, // ... rest of dialog
-                                        backgroundColor: Colors.transparent,
-                                        alignment: AlignmentDirectional(0.0, 0.0)
-                                            .resolve(Directionality.of(context)),
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            FocusScope.of(dialogContext).unfocus();
-                                            FocusManager.instance.primaryFocus
-                                                ?.unfocus();
-                                          },
-                                          child: OrderPlacedCompWidget(
-                                            customerName: FFAppState().customerName,
-                                            orderType: FFAppState().orderType,
-                                            totalAmount: 0.0, // Subtotal was reset, maybe pass saved total?
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  );
-                              } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Failed to place order: ${_model.apiResultnt5?.jsonBody?['message'] ?? 'Unknown error'}',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                              }
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Please enter your name & phone number.',
-                                    style: TextStyle(
-                                      color: FlutterFlowTheme.of(context)
-                                          .primaryText,
-                                    ),
-                                  ),
-                                  duration: Duration(milliseconds: 4000),
-                                  backgroundColor:
-                                      FlutterFlowTheme.of(context).secondary,
-                                ),
-                              );
-                            }
-                          },
-                          text: 'Place Order',
-                          options: FFButtonOptions(
-                            width: double.infinity,
-                            height: 56.0,
-                            padding: EdgeInsets.all(8.0),
-                            iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                0.0, 0.0, 0.0, 0.0),
-                            color: Color(0xFF8B4513),
-                            textStyle: FlutterFlowTheme.of(context)
-                                .titleMedium
-                                .override(
+                  Padding(
+                    padding:
+                        EdgeInsetsDirectional.fromSTEB(16.0, 24.0, 16.0, 24.0),
+                    child: FFButtonWidget(
+                      onPressed: () {
+                        print('Button pressed ...');
+                      },
+                      text: 'Place Order',
+                      options: FFButtonOptions(
+                        width: double.infinity,
+                        height: 56.0,
+                        padding: EdgeInsets.all(8.0),
+                        iconPadding:
+                            EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                        color: Color(0xFF8B4513),
+                        textStyle:
+                            FlutterFlowTheme.of(context).titleMedium.override(
                                   font: GoogleFonts.interTight(
                                     fontWeight: FontWeight.w600,
                                     fontStyle: FlutterFlowTheme.of(context)
@@ -1578,14 +1435,12 @@ class _CheckoutPageWidgetState extends State<CheckoutPageWidget> {
                                       .titleMedium
                                       .fontStyle,
                                 ),
-                            elevation: 3.0,
-                            borderSide: BorderSide(
-                              color: Colors.transparent,
-                              width: 1.0,
-                            ),
-                            borderRadius: BorderRadius.circular(12.0),
-                          ),
+                        elevation: 3.0,
+                        borderSide: BorderSide(
+                          color: Colors.transparent,
+                          width: 1.0,
                         ),
+                        borderRadius: BorderRadius.circular(12.0),
                       ),
                     ),
                   ),

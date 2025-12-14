@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\ProductApiController;
 use App\Http\Controllers\AiController;
 use App\Http\Controllers\Api\CustomerApiController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\FlutterflowOrderController;
 
 
 /*
@@ -147,8 +148,16 @@ Route::post('/pos/checkout', function (Request $request) {
 | AI Product Recommendation (Public for now)
 |--------------------------------------------------------------------------
 */
-Route::post('/ai/recommend', [AiController::class, 'recommend']);
-Route::post('/recommend-products', [AiController::class, 'recommendWithN8n']);
+
+
+/*
+|--------------------------------------------------------------------------
+| AI Admin & Insights
+|--------------------------------------------------------------------------
+*/
+Route::post('/ai/admin-chat', [AiController::class, 'adminChat'])->name('ai.admin-chat');
+Route::get('/ai/debug-context', [AiController::class, 'debugContext']); // Debug Route
+Route::post('/ai/sales-insights', [AiController::class, 'salesInsights']);
 
 /*
 |--------------------------------------------------------------------------
@@ -179,4 +188,16 @@ Route::post('/customers/sync', [CustomerApiController::class, 'syncFromFirebase'
 Route::post('/orders', [OrderController::class, 'store']);
 Route::get('/orders/history', [OrderController::class, 'index']);
 
+// ✅ NEW FlutterFlow Orders (NO Firebase)
+Route::post('/ff/orders', [FlutterflowOrderController::class, 'store']);
+Route::get('/ff/orders/history', [FlutterflowOrderController::class, 'history']);
+
+Route::get('/whoami', function () {
+    return response()->json([
+        'app_url' => config('app.url'),
+        'db' => config('database.connections.mysql.database'),
+        'host' => request()->getHost(),
+        'time' => now()->toDateTimeString(),
+    ]);
+});
 
