@@ -17,7 +17,8 @@ class AiController extends Controller
     // Web UI for AI Assistant
     public function index()
     {
-        return view('ai.index');
+        $history = session('ai_history', []);
+        return view('ai.index', compact('history'));
     }
 
     // API for Admin Chat (Web)
@@ -131,14 +132,15 @@ SYS;
         Log::info('AI System Prompt:', ['prompt' => $systemPrompt]); // DEBUG LOG
 
         try {
-            // Optional: make URL configurable (falls back to local)
-            $ollamaUrl = config('services.ollama.url', 'http://127.0.0.1:11434');
+            // Fetch config (defaults provided in config/services.php)
+            $ollamaUrl = config('services.ollama.url');
+            $ollamaModel = config('services.ollama.model');
 
             $response = Http::timeout(120)
                 ->acceptJson()
                 ->asJson()
                 ->post($ollamaUrl . '/api/chat', [
-                    'model' => 'llama3',
+                    'model' => $ollamaModel,
                     'stream' => false,
                     'messages' => $messages,
                     'options' => [

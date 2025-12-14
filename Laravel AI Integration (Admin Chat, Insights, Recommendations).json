@@ -1,0 +1,468 @@
+{
+  "name": "Laravel AI Integration (Admin Chat, Insights, Recommendations)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "admin-chat",
+        "options": {}
+      },
+      "id": "969c654e-a815-4b0a-95b5-a3125f7062e7",
+      "name": "Webhook (Admin Chat)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "admin-chat-webhook"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/chat",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "llama3"
+            },
+            {
+              "name": "messages",
+              "value": "={{ [{\"role\": \"system\", \"content\": \"You are a helpful admin assistant. Respond using ONLY a JSON object with keys: 'reply' (string) and 'action' (string, optional).\"}, {\"role\": \"user\", \"content\": $json.body.message }] }}"
+            },
+            {
+              "name": "format",
+              "value": "json"
+            },
+            {
+              "name": "stream",
+              "value": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ace40c52-aed6-46f3-9918-a0d6cf645930",
+      "name": "Ollama (Chat)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.parse($json.message.content) }}",
+        "options": {}
+      },
+      "id": "6aec43b7-bc97-4905-b05c-6c571df770b8",
+      "name": "Respond to Webhook (Chat)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        448,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sales-insights",
+        "options": {}
+      },
+      "id": "fca770d9-1838-43d5-b004-29c6bda67bf0",
+      "name": "Webhook (Sales Insights)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        0,
+        224
+      ],
+      "webhookId": "sales-insights-webhook"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/chat",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "llama3"
+            },
+            {
+              "name": "messages",
+              "value": "={{ [{\"role\": \"system\", \"content\": \"You are a data analyst. Analyze the provided sales data. Respond using ONLY a JSON object with keys: 'analysis' (string) and 'suggestions' (array of strings).\"}, {\"role\": \"user\", \"content\": \"Here is the data: Date: \" + $json.body.date + \", Daily Sales: \" + $json.body.daily_sales + \", Order Count: \" + $json.body.order_count }] }}"
+            },
+            {
+              "name": "format",
+              "value": "json"
+            },
+            {
+              "name": "stream",
+              "value": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8e90132b-1088-4f6d-80d7-da6e85625742",
+      "name": "Ollama (Insights)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        224,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.parse($json.message.content) }}",
+        "options": {}
+      },
+      "id": "807a2072-89a9-477a-a607-b125a7ff8934",
+      "name": "Respond to Webhook (Insights)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        448,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "recommend-products",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "692adfc3-cf79-4638-98a1-9c54a32981ce",
+      "name": "Webhook (Recommend)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        800,
+        352
+      ],
+      "webhookId": "recommend-products-webhook"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/chat",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "llama3"
+            },
+            {
+              "name": "messages",
+              "value": "={{ [{\"role\": \"system\", \"content\": \"You are a barista assistant. Recommend products from the MENU. Respond using ONLY a JSON array of objects with keys: 'product_id', 'name', 'reason'.\"}, {\"role\": \"user\", \"content\": \"Preferences: \" + $json.body.preferences + \"\\nBudget: \" + ($json.body.budget || 'Any') + \"\\nMENU: \" + $json.body.menu_context }] }}"
+            },
+            {
+              "name": "format",
+              "value": "json"
+            },
+            {
+              "name": "stream",
+              "value": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b73c1f73-fa33-40c3-844b-c9f57b99a615",
+      "name": "Ollama (Recommend)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        1024,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.parse($json.message.content) }}",
+        "options": {}
+      },
+      "id": "2a385d3d-b4fc-4554-b9db-c18fe35b5972",
+      "name": "Respond to Webhook (Recommend)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "admin-chat",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "0fc2f4dc-8acc-48bf-aa4d-552e42a8c866",
+      "name": "Webhook (Admin Chat)1",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        800,
+        -96
+      ],
+      "webhookId": "admin-chat-webhook"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/chat",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "llama3"
+            },
+            {
+              "name": "messages",
+              "value": "={{ [{\"role\": \"system\", \"content\": \"You are a helpful admin assistant. Respond using ONLY a JSON object with keys: 'reply' (string) and 'action' (string, optional).\"}, {\"role\": \"user\", \"content\": $json.body.message }] }}"
+            },
+            {
+              "name": "format",
+              "value": "json"
+            },
+            {
+              "name": "stream",
+              "value": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2aebb82e-822b-487e-8d06-520a61606c1b",
+      "name": "Ollama (Chat)1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        1024,
+        -96
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.parse($json.message.content) }}",
+        "options": {}
+      },
+      "id": "214719de-acb0-4296-8dd3-5193af603262",
+      "name": "Respond to Webhook (Chat)1",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        -96
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sales-insights",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "c8437d86-9007-4870-9b47-0b96988f52f8",
+      "name": "Webhook (Sales Insights)1",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        800,
+        128
+      ],
+      "webhookId": "sales-insights-webhook"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/chat",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "llama3"
+            },
+            {
+              "name": "messages",
+              "value": "={{ [{\"role\": \"system\", \"content\": \"You are a data analyst. Analyze the provided sales data. Respond using ONLY a JSON object with keys: 'analysis' (string) and 'suggestions' (array of strings).\"}, {\"role\": \"user\", \"content\": \"Here is the data: Date: \" + $json.body.date + \", Daily Sales: \" + $json.body.daily_sales + \", Order Count: \" + $json.body.order_count }] }}"
+            },
+            {
+              "name": "format",
+              "value": "json"
+            },
+            {
+              "name": "stream",
+              "value": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "357883c7-4a4f-4491-b00c-fd94db4a31b8",
+      "name": "Ollama (Insights)1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        1024,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.parse($json.message.content) }}",
+        "options": {}
+      },
+      "id": "f9508a40-24ef-479e-88d6-eb3c442ec7e5",
+      "name": "Respond to Webhook (Insights)1",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        128
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook (Admin Chat)": {
+      "main": [
+        [
+          {
+            "node": "Ollama (Chat)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama (Chat)": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook (Chat)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook (Sales Insights)": {
+      "main": [
+        [
+          {
+            "node": "Ollama (Insights)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama (Insights)": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook (Insights)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook (Recommend)": {
+      "main": [
+        [
+          {
+            "node": "Ollama (Recommend)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama (Recommend)": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook (Recommend)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook (Admin Chat)1": {
+      "main": [
+        [
+          {
+            "node": "Ollama (Chat)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama (Chat)1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook (Chat)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook (Sales Insights)1": {
+      "main": [
+        [
+          {
+            "node": "Ollama (Insights)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama (Insights)1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook (Insights)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "08ce4ac1-94da-4d85-a568-34650e14538a",
+  "meta": {
+    "instanceId": "9e7374a5436923d6420459c43984c17b9ecc2b3e76405198405e4310bb1f4aca"
+  },
+  "id": "Jw49yaSgOcaI0vc9",
+  "tags": []
+}

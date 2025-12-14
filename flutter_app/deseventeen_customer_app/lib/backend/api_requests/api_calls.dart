@@ -16,7 +16,7 @@ class GetProductsCall {
   }) async {
     return ApiManager.instance.makeApiCall(
       callName: 'GetProducts',
-      apiUrl: 'https://loida-gamelike-sara.ngrok-free.dev/api/products',
+      apiUrl: 'https://unadjustably-unwadable-nikia.ngrok-free.dev/api/products',
       callType: ApiCallType.GET,
       headers: {
         'Accept': 'application/json',
@@ -153,7 +153,7 @@ class SyncCustomerCall {
 }''';
     return ApiManager.instance.makeApiCall(
       callName: 'SyncCustomer',
-      apiUrl: 'https://loida-gamelike-sara.ngrok-free.dev/api/customers/sync',
+      apiUrl: 'https://unadjustably-unwadable-nikia.ngrok-free.dev/api/customers/sync',
       callType: ApiCallType.POST,
       headers: {
         'Content-Type': 'application/json',
@@ -188,7 +188,7 @@ class PingApiCall {
   static Future<ApiCallResponse> call() async {
     return ApiManager.instance.makeApiCall(
       callName: 'PingApi',
-      apiUrl: 'https://loida-gamelike-sara.ngrok-free.dev/api/ping',
+      apiUrl: 'https://unadjustably-unwadable-nikia.ngrok-free.dev/api/ping',
       callType: ApiCallType.GET,
       headers: {},
       params: {},
@@ -210,7 +210,7 @@ class PlaceOrderCall {
 "${jsonBody}"''';
     return ApiManager.instance.makeApiCall(
       callName: 'PlaceOrder',
-      apiUrl: 'https://loida-gamelike-sara.ngrok-free.dev/api/orders',
+      apiUrl: 'https://unadjustably-unwadable-nikia.ngrok-free.dev/api/orders',
       callType: ApiCallType.POST,
       headers: {
         'Authorization': '{{ currentUserJwtToken }}',
@@ -234,7 +234,7 @@ class GetCartItemsCall {
   static Future<ApiCallResponse> call() async {
     return ApiManager.instance.makeApiCall(
       callName: 'GetCartItems',
-      apiUrl: 'https://loida-gamelike-sara.ngrok-free.dev/api/cart',
+      apiUrl: 'https://unadjustably-unwadable-nikia.ngrok-free.dev/api/cart',
       callType: ApiCallType.GET,
       headers: {},
       params: {},
@@ -252,7 +252,7 @@ class OrderHistoryCall {
   static Future<ApiCallResponse> call() async {
     return ApiManager.instance.makeApiCall(
       callName: 'OrderHistory',
-      apiUrl: 'https://loida-gamelike-sara.ngrok-free.dev/api/orders/history',
+      apiUrl: 'https://unadjustably-unwadable-nikia.ngrok-free.dev/api/orders/history',
       callType: ApiCallType.GET,
       headers: {
         'Authorization': '<Firebase ID Token>',
