@@ -13,7 +13,14 @@ class ProductController extends Controller
 {
     public function index(Request $request): View
     {
-        $products = Product::with('category')->latest('id')->paginate(12)->withQueryString();
+        $products = Product::with('category')
+            ->when($request->input('category'), function ($query, $categoryId) {
+                return $query->where('category_id', $categoryId);
+            })
+            ->latest('id')
+            ->paginate(12)
+            ->withQueryString();
+
         $categories = Category::orderBy('name')->get(['id','name']);
 
         return view('products.index', compact('products','categories'));

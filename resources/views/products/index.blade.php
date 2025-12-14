@@ -4,6 +4,20 @@
         <button @click="$dispatch('open-modal', 'create-product')" class="px-4 py-2 rounded-lg btn-cafe">Add Product</button>
     </div>
 
+    <!-- Category Filters -->
+    <div class="mb-6 flex flex-wrap gap-2">
+        <a href="{{ route('products.index') }}"
+           class="px-5 py-2 rounded-full text-sm font-semibold transition-all shadow-sm border {{ !request('category') ? 'bg-[#3d2b1f] text-white border-[#3d2b1f]' : 'bg-white text-[#3d2b1f] border-[#3d2b1f] hover:bg-[#faf5ef]' }}">
+            All
+        </a>
+        @foreach($categories as $cat)
+            <a href="{{ route('products.index', ['category' => $cat->id]) }}"
+               class="px-5 py-2 rounded-full text-sm font-semibold transition-all shadow-sm border {{ request('category') == $cat->id ? 'bg-[#3d2b1f] text-white border-[#3d2b1f]' : 'bg-white text-[#3d2b1f] border-[#3d2b1f] hover:bg-[#faf5ef]' }}">
+                {{ $cat->name }}
+            </a>
+        @endforeach
+    </div>
+
     <!-- Grid / Empty State -->
     @if ($products->count() === 0)
         <div class="bg-white rounded-lg shadow p-10 text-center space-y-2">
