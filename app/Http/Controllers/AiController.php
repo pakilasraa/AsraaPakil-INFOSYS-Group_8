@@ -157,6 +157,12 @@ SYS;
                     'body' => $response->body(),
                 ]);
 
+                if ($response->status() === 404) {
+                    return response()->json([
+                        'message' => "Model '$ollamaModel' not found. Please run 'ollama pull $ollamaModel' in terminal."
+                    ], 500);
+                }
+
                 return response()->json([
                     'message' => 'AI is sleeping (Error: ' . $response->status() . ')'
                 ], 500);
