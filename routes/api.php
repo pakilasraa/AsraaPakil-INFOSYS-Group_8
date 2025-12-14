@@ -155,7 +155,7 @@ Route::post('/pos/checkout', function (Request $request) {
 | AI Admin & Insights
 |--------------------------------------------------------------------------
 */
-Route::post('/ai/admin-chat', [AiController::class, 'adminChat'])->name('ai.admin-chat');
+
 Route::get('/ai/debug-context', [AiController::class, 'debugContext']); // Debug Route
 Route::post('/ai/sales-insights', [AiController::class, 'salesInsights']);
 

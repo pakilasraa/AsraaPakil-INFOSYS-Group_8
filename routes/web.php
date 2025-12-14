@@ -25,6 +25,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // AI Assistant
     Route::get('/ai', [AiController::class, 'index'])->name('ai.index');
+    Route::post('/ai/chat', [AiController::class, 'adminChat'])->name('ai.admin-chat');
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

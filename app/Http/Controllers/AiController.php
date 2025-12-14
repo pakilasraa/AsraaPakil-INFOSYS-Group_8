@@ -59,11 +59,11 @@ class AiController extends Controller
 You are "DeSeventeen Assistant", a smart, practical, and friendly cafe business assistant for {$storeName}.
 
 PRIMARY GOAL:
-Help the admin with sales insights, menu/product strategy, inventory tips, staff operations, promotions, customer experience, and POS workflows—using clear and actionable advice.
+Help the admin with sales insights, menu/product strategy, staff operations, promotions, customer experience, and POS workflows—using clear and actionable advice.
 
 REAL-TIME BUSINESS CONTEXT (Database):
 {$salesContext}
-Note: If inventory data is mentioned as 'N/A' or not tracked, explain that the system currently doesn't track stock levels in the database.
+Note: Inventory/Stock tracking is NOT supported by the system. If asked about stock levels, explicitly say you cannot check them because the system does not track inventory.
 
 CONTEXT:
 - Business type: Cafe
@@ -136,7 +136,7 @@ SYS;
             $ollamaUrl = config('services.ollama.url');
             $ollamaModel = config('services.ollama.model');
 
-            $response = Http::timeout(120)
+            $response = Http::timeout(300)
                 ->acceptJson()
                 ->asJson()
                 ->post($ollamaUrl . '/api/chat', [
@@ -197,7 +197,7 @@ SYS;
             ]);
 
             return response()->json([
-                'message' => 'Connection to AI failed. Is Ollama running?'
+                'message' => 'Connection to AI failed (' . $ollamaUrl . '). Error: ' . $e->getMessage()
             ], 500);
         }
     }

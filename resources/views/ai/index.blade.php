@@ -3,7 +3,7 @@
         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6 text-gray-900">
                 <h2 class="text-2xl font-bold mb-4 text-[#3d2b1f]">AI Assistant</h2>
-                <p class="mb-4 text-gray-600">Welcome! I can help you manage sales, inventory, and promotions.</p>
+                <p class="mb-4 text-gray-600">Welcome! I can help you manage sales and promotions.</p>
 
                 <!-- Suggested Questions -->
                 <div class="mb-4 flex flex-wrap gap-2">
@@ -13,9 +13,7 @@
                     <button onclick="fillAndSend('What are the best selling items?')" class="px-3 py-1.5 rounded-full border border-[#3d2b1f] text-[#3d2b1f] text-sm hover:bg-[#3d2b1f] hover:text-white transition-colors">
                         🏆 Best Sellers?
                     </button>
-                    <button onclick="fillAndSend('What items are low on stock?')" class="px-3 py-1.5 rounded-full border border-[#3d2b1f] text-[#3d2b1f] text-sm hover:bg-[#3d2b1f] hover:text-white transition-colors">
-                        ⚠️ Low Stock?
-                    </button>
+
                     <button onclick="fillAndSend('Suggest a promo for this afternoon')" class="px-3 py-1.5 rounded-full border border-[#3d2b1f] text-[#3d2b1f] text-sm hover:bg-[#3d2b1f] hover:text-white transition-colors">
                         💡 Promo Idea
                     </button>
